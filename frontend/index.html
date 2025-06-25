@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  
+  <!-- Security headers -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'" />
+  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+  <meta http-equiv="X-Frame-Options" content="SAMEORIGIN" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  
+  <!-- App meta -->
+  <title>ID Security PSW - Compartilhamento Seguro</title>
+  <meta name="description" content="Plataforma corporativa para compartilhamento seguro de informações sensíveis com leitura única" />
+  <meta name="keywords" content="segurança, senha, compartilhamento, corporativo, one-time" />
+  <meta name="author" content="ID Security Team" />
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- WindiCSS -->
+  <link rel="stylesheet" href="src/styles/main.css">
+</head>
+<body class="bg-gray-50 font-sans antialiased">
+  <!-- App container -->
+  <div id="app" class="min-h-screen"></div>
+  
+  <!-- Main script -->
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html> 

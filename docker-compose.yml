@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # Redis para OTS
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - ots-network
+    restart: unless-stopped
+
+  # Backend One-Time Secret oficial
+  ots-backend:
+    image: pglombardo/one-time-secret:latest
+    environment:
+      - OTS_SECRET=${OTS_SECRET:-your-secret-key-change-this}
+      - OTS_HOST=0.0.0.0
+      - OTS_PORT=7143
+      - REDIS_URL=redis://redis:6379
+      - OTS_DOMAIN=localhost:3000
+    ports:
+      - "${OTS_BACKEND_PORT:-7143}:7143"
+    depends_on:
+      - redis
+    networks:
+      - ots-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:7143/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend personalizado
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    environment:
+      - NODE_ENV=production
+      - OTS_API_URL=http://ots-backend:7143
+      - PORT=3000
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      - ots-backend
+    networks:
+      - ots-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  redis_data:
+    driver: local
+
+networks:
+  ots-network:
+    driver: bridge 
