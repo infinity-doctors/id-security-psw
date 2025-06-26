@@ -362,27 +362,27 @@ export class App {
     const contentElement = document.getElementById('app-content')
     if (contentElement) {
       contentElement.innerHTML = `
-        <div class="bg-white rounded-xl shadow-lg p-8 animate-slide-up">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 animate-slide-up">
           <div class="text-center mb-8">
-            <div class="w-16 h-16 bg-success-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg class="w-8 h-8 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="w-16 h-16 bg-success-100 dark:bg-success-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg class="w-8 h-8 text-success-600 dark:text-success-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
             </div>
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">Segredo Revelado</h1>
-            <p class="text-gray-600">
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Segredo Revelado</h1>
+            <p class="text-gray-600 dark:text-gray-300">
               O conteúdo foi revelado com sucesso. Este link agora está inativo.
             </p>
           </div>
 
           <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Conteúdo do Segredo
             </label>
             <div class="relative">
               <textarea
                 readonly
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 font-mono text-sm resize-none"
+                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white font-mono text-sm resize-none"
                 rows="6"
                 id="revealed-secret"
               >${secretContent}</textarea>
@@ -396,14 +396,14 @@ export class App {
             </div>
           </div>
 
-          <div class="bg-warning-50 border border-warning-200 rounded-lg p-4 mb-6">
+          <div class="bg-warning-50 dark:bg-warning-900/20 border border-warning-200 dark:border-warning-800 rounded-lg p-4 mb-6">
             <div class="flex items-start">
-              <svg class="w-5 h-5 text-warning-600 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 text-warning-600 dark:text-warning-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z"></path>
               </svg>
               <div class="text-sm">
-                <h4 class="font-medium text-warning-800 mb-1">Importante</h4>
-                <p class="text-warning-700">
+                <h4 class="font-medium text-warning-800 dark:text-warning-300 mb-1">Importante</h4>
+                <p class="text-warning-700 dark:text-warning-400">
                   Este segredo foi consumido e não pode mais ser acessado. O link está agora inativo.
                 </p>
               </div>
