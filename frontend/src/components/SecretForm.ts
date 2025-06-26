@@ -159,7 +159,7 @@ export class SecretForm {
     textarea?.addEventListener('input', this.updateCharacterCount.bind(this))
   }
 
-  private async handleSubmit(e: Event): Promise<void> {
+  private async handleSubmit(_e: Event): Promise<void> {
     const secretTextarea = document.getElementById('secret-content') as HTMLTextAreaElement
     const ttlSelect = document.getElementById('ttl') as HTMLSelectElement
     const passphraseInput = document.getElementById('passphrase') as HTMLInputElement

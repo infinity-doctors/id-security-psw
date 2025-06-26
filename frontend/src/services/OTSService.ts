@@ -139,7 +139,7 @@ export class OTSService {
       }
     } catch (error) {
       console.error(`[OTSService] Error retrieving secret ${secretKey}:`, error)
-      throw this.handleError(error)
+      throw this.handleError(error, !!passphrase)
     }
   }
 
@@ -162,7 +162,7 @@ export class OTSService {
 
       return response.data
     } catch (error) {
-      throw this.handleError(error)
+      throw this.handleError(error, false)
     }
   }
 
@@ -178,7 +178,7 @@ export class OTSService {
       const response = await this.api.get<{ status: string; version?: string }>('/status')
       return response.data
     } catch (error) {
-      throw this.handleError(error)
+      throw this.handleError(error, false)
     }
   }
 
@@ -198,7 +198,7 @@ export class OTSService {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
         return false
       }
-      throw this.handleError(error)
+      throw this.handleError(error, false)
     }
   }
 
@@ -240,7 +240,7 @@ export class OTSService {
    * @throws An error if the error is not found
    * @throws An error if the error is not found
    */
-  private handleError(error: any): Error {
+  private handleError(error: any, hasPassphrase: boolean = false): Error {
     console.error('[OTSService] handleError called with:', error)
     
     if (axios.isAxiosError(error)) {
@@ -272,23 +272,27 @@ export class OTSService {
               }
 
               if (data.message.includes('expired') || data.message.includes('expirado') || data.message.includes('consumed')) {
-                return new Error('Este segredo expirou e não está mais disponível')
+                return new Error('Segredo expirado ou já visualizado')
               }
 
               if (data.message.includes('viewed') || data.message.includes('visualizado') || data.message.includes('no longer available')) {
-                return new Error('Este segredo já foi visualizado e não está mais disponível')
+                return new Error('Segredo expirado ou já visualizado')
               }
 
               if (data.message.includes('passphrase') || data.message.includes('password') || 
                   data.message.includes('Wrong') || data.message.includes('Unknown secret')) {
-                return new Error('Senha incorreta ou obrigatória')
+                if (hasPassphrase) {
+                  return new Error('Senha inválida, segredo expirado ou já visualizado')
+                } else {
+                  return new Error('Este segredo requer uma senha para ser acessado')
+                }
               }
               
               if (data.message.length > 10) {
                 return new Error(data.message)
               }
             }
-            return new Error('Segredo não encontrado, expirado ou já foi visualizado')
+            return new Error('Segredo expirado ou já visualizado')
           case 429:
             return new Error('Muitas tentativas: Tente novamente em alguns minutos')
           case 500:
