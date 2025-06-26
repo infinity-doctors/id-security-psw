@@ -114,17 +114,25 @@ export class OTSService {
     passphrase?: string
   ): Promise<RetrieveSecretResponse> {
     try {
-      const url = passphrase 
-        ? `/v1/secret/${secretKey}/${encodeURIComponent(passphrase)}`
-        : `/v1/secret/${secretKey}`
+      const formData = new URLSearchParams()
+      if (passphrase) {
+        formData.append('passphrase', passphrase)
+      }
 
-      const response = await this.api.get<RetrieveSecretResponse>(url)
+      const response = await this.api.post<any>(`/v1/secret/${secretKey}`, formData, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      })
       
-      if (!response.data || !response.data.secret) {
+      if (!response.data || !response.data.value) {
         throw new Error('Segredo não encontrado ou já foi visualizado')
       }
 
-      return response.data
+      return {
+        secret: response.data.value,
+        metadata_key: response.data.secret_key || secretKey
+      }
     } catch (error) {
       throw this.handleError(error)
     }
