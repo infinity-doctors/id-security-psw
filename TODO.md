@@ -17,5 +17,8 @@
 [X] Atualizar favicon baseado no ícone do header 
 [X] Casos expirados estão exigindo senha
 [X] Correção de "Unknown secret" quando segredo tiver senha
-[ ] Tela de "Link Seguro Criado!" não possui dark mode
-[ ] NOVO TESTE (5 MIN/ 15:19): http://localhost:3005/secret/66r2tarmadyle2sz1dlawh8sosxecew
+[X] Tela de "Link Seguro Criado!" não possui dark mode
+[/] NOVO TESTE (5 MIN/ 15:19): http://localhost:3005/secret/66r2tarmadyle2sz1dlawh8sosxecew
+[X] Tela de "Segredo Revelado" não possui dark mode
+[ ] Segredo c/ senha expirada está retornando "Senha inválida" -> Deve retornar Senha inválida, segredo expirado ou já visualizado.
+[ ] Segredo s/ senha expirada -> Deve retornar "Segredo expirado ou já visualizado"

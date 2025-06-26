@@ -16,24 +16,24 @@ export class SecretView {
     const secretUrl = `${this.baseUrl}/secret/${this.secretKey}`
     
     return `
-      <div class="bg-white rounded-xl shadow-lg p-8 animate-slide-up">
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 animate-slide-up">
         <!-- Header -->
         <div class="text-center mb-8">
-          <div class="w-16 h-16 bg-success-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="w-16 h-16 bg-success-100 dark:bg-success-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-success-600 dark:text-success-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
           </div>
           
-          <h2 class="text-2xl font-bold text-gray-900 mb-2">Link Seguro Criado!</h2>
-          <p class="text-gray-600">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Link Seguro Criado!</h2>
+          <p class="text-gray-600 dark:text-gray-300">
             Seu link foi gerado com sucesso. Compartilhe-o de forma segura.
           </p>
         </div>
 
         <!-- Secret URL Display -->
         <div class="mb-8">
-          <label class="block text-sm font-medium text-gray-700 mb-3">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
             Link do Segredo
           </label>
           
@@ -43,11 +43,11 @@ export class SecretView {
               id="secret-url"
               value="${secretUrl}"
               readonly
-              class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg bg-gray-50 font-mono text-sm selection:bg-primary-100"
+              class="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white font-mono text-sm selection:bg-primary-100"
             />
             <button
               type="button"
-              class="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-primary-600 transition-colors"
+              class="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 dark:text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
               data-action="copy-url"
               title="Copiar link"
             >
@@ -61,12 +61,12 @@ export class SecretView {
         <!-- QR Code Section -->
         <div class="mb-8">
           <div class="flex items-center justify-between mb-3">
-            <label class="block text-sm font-medium text-gray-700">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
               QR Code
             </label>
             <button
               type="button"
-              class="text-sm text-primary-600 hover:text-primary-700"
+              class="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300"
               data-action="toggle-qr"
             >
               <span class="qr-toggle-text">Mostrar QR Code</span>
@@ -74,24 +74,24 @@ export class SecretView {
           </div>
           
           <div id="qr-container" class="hidden">
-            <div class="flex justify-center p-6 bg-white border-2 border-gray-200 rounded-lg">
+            <div class="flex justify-center p-6 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-lg">
               <canvas id="qr-code"></canvas>
             </div>
-            <p class="text-xs text-gray-500 text-center mt-2">
+            <p class="text-xs text-gray-500 dark:text-gray-400 text-center mt-2">
               Escaneie com seu dispositivo móvel para acessar o link
             </p>
           </div>
         </div>
 
         <!-- Security Information -->
-        <div class="bg-warning-50 border border-warning-200 rounded-lg p-4 mb-8">
+        <div class="bg-warning-50 dark:bg-warning-900/20 border border-warning-200 dark:border-warning-800 rounded-lg p-4 mb-8">
           <div class="flex items-start">
-            <svg class="w-5 h-5 text-warning-600 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 text-warning-600 dark:text-warning-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z"></path>
             </svg>
             <div class="text-sm">
-              <h4 class="font-medium text-warning-800 mb-2">Lembrete Importante</h4>
-              <ul class="text-warning-700 space-y-1">
+              <h4 class="font-medium text-warning-800 dark:text-warning-300 mb-2">Lembrete Importante</h4>
+              <ul class="text-warning-700 dark:text-warning-400 space-y-1">
                 <li>• <strong>Uma única visualização:</strong> O link será invalidado após o primeiro acesso</li>
                 <li>• <strong>Compartilhamento seguro:</strong> Use canais seguros (Signal, WhatsApp, email criptografado)</li>
                 <li>• <strong>Verificação:</strong> Confirme com o destinatário que recebeu o link</li>
@@ -244,12 +244,15 @@ export class SecretView {
       try {
         const secretUrl = `${this.baseUrl}/secret/${this.secretKey}`
         
+        // Detect dark mode for QR code colors
+        const isDarkMode = document.documentElement.classList.contains('dark')
+        
         await QRCode.toCanvas(canvas, secretUrl, {
           width: 200,
           margin: 2,
           color: {
-            dark: '#1f2937',
-            light: '#ffffff'
+            dark: isDarkMode ? '#ffffff' : '#1f2937',
+            light: isDarkMode ? '#374151' : '#ffffff'
           }
         })
         
