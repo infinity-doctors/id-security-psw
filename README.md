@@ -189,9 +189,3 @@ GET /api/status
 ## 📄 Licença
 
 Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para detalhes.
-
-## 🆘 Suporte
-
-- **Issues**: Reporte bugs ou solicite features via GitHub Issues
-- **Documentação**: Wiki do projeto
-- **Contato**: [seu-email@empresa.com] 
