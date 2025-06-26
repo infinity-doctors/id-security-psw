@@ -1,24 +1,30 @@
+import { NotificationManager } from './NotificationManager'
 import { SecretForm } from './SecretForm'
 import { SecretView } from './SecretView'
+import { Router } from '../utils/Router'
 import { Header } from './Header'
 import { Footer } from './Footer'
-import { NotificationManager } from './NotificationManager'
-import { Router, Route } from '../utils/Router'
 import { ThemeManager } from '../utils/ThemeManager'
 
-export interface AppState {
-  currentView: 'form' | 'view' | 'success' | 'retrieve'
-  secretKey?: string
+interface SecretData {
+  secret: string
+  passphrase?: string
+  ttl: number
+  recipient?: string
+}
+
+interface AppState {
+  currentView: 'create' | 'view' | 'retrieve'
+  secretData?: SecretData
   retrieveKey?: string
   passphrase?: string
-  error?: string
   requiresPassphrase?: boolean
-  passwordAttempts?: number
+  secretKey?: string
 }
 
 export class App {
   private container: HTMLElement
-  private state: AppState = { currentView: 'form' }
+  private state: AppState = { currentView: 'create' }
   private notificationManager: NotificationManager
 
   constructor(container: HTMLElement) {
@@ -26,16 +32,16 @@ export class App {
     this.notificationManager = new NotificationManager()
   }
 
-  public init(initialRoute?: Route): void {
-    // Initialize theme manager
+  public init(initialRoute?: any): void {
+    console.log('[App] Initializing with route:', initialRoute)
+    
     ThemeManager.init()
-
+    
+    this.render()
+    
     if (initialRoute) {
       this.handleRoute(initialRoute)
     }
-
-    this.render()
-    this.bindEvents()
 
     window.addEventListener('popstate', () => {
       const route = Router.parseRoute()
@@ -58,7 +64,6 @@ export class App {
 
         ${new Footer().render()}
         
-        <!-- Notification container -->
         <div id="notifications" class="fixed top-4 right-4 space-y-2 z-50"></div>
       </div>
     `
@@ -75,7 +80,7 @@ export class App {
 
   private renderCurrentView(): string {
     switch (this.state.currentView) {
-      case 'form':
+      case 'create':
         return new SecretForm(
           this.handleSecretCreated.bind(this),
           this.showError.bind(this)
@@ -84,8 +89,6 @@ export class App {
         return new SecretView(this.state.secretKey!, this.handleBackToForm.bind(this)).render()
       case 'retrieve':
         return this.renderRetrieveView()
-      case 'success':
-        return this.renderSuccessView()
       default:
         return new SecretForm(
           this.handleSecretCreated.bind(this),
@@ -141,12 +144,6 @@ export class App {
         case 'toggle-theme':
           e.preventDefault()
           e.stopPropagation()
-          console.log('Toggle theme clicked!', {
-            clickedElement: target.tagName,
-            actionElement: actionElement?.tagName,
-            currentTheme: ThemeManager.getCurrentTheme(),
-            timestamp: new Date().toISOString(),
-          })
           ThemeManager.toggle()
           break
       }
@@ -155,7 +152,7 @@ export class App {
 
   private bindCurrentViewEvents(container: HTMLElement): void {
     switch (this.state.currentView) {
-      case 'form':
+      case 'create':
         const secretForm = new SecretForm(
           this.handleSecretCreated.bind(this),
           this.showError.bind(this)
@@ -180,7 +177,6 @@ export class App {
     this.setState({
       currentView: 'view',
       secretKey,
-      error: undefined,
     })
 
     this.notificationManager.show({
@@ -211,69 +207,6 @@ export class App {
       return
     }
 
-    if (!this.state.requiresPassphrase && !this.state.passphrase) {
-      try {
-        const { OTSService } = await import('../services/OTSService')
-        const otsService = new OTSService()
-        
-        const result = await otsService.retrieveSecret(this.state.retrieveKey)
-
-        this.setState({
-          currentView: 'view',
-          secretKey: this.state.retrieveKey,
-          retrieveKey: undefined,
-        })
-
-        this.showRetrievedSecret(result.secret)
-        return
-        
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Erro ao recuperar segredo'
-
-        if (
-          errorMessage.includes('expirou') ||
-          errorMessage.includes('expired') ||
-          errorMessage.includes('visualizado') ||
-          errorMessage.includes('viewed') ||
-          errorMessage.includes('não está mais disponível') ||
-          errorMessage.includes('consumed') ||
-          errorMessage.includes('no longer available') ||
-          errorMessage.includes('Segredo expirado ou já visualizado')
-        ) {
-          this.showError(errorMessage)
-          setTimeout(() => {
-            Router.goHome()
-          }, 3000)
-          return
-        }
-
-        if (errorMessage.includes('rate limited') || errorMessage.includes('Muitas tentativas')) {
-          this.showError(errorMessage)
-          setTimeout(() => {
-            Router.goHome()
-          }, 3000)
-          return
-        }
-
-        if (
-          errorMessage.includes('Este segredo requer uma senha para ser acessado')
-        ) {
-          this.setState({
-            requiresPassphrase: true,
-            passwordAttempts: 0,
-          })
-          return
-        }
-
-        this.showError(errorMessage)
-        setTimeout(() => {
-          Router.goHome()
-        }, 3000)
-        return
-      }
-    }
-
-    // Segunda verificação: usuário já forneceu senha ou está tentando com senha
     let passphrase = this.state.passphrase
     if (this.state.requiresPassphrase && !passphrase) {
       const passphraseInput = document.getElementById('retrieve-passphrase') as HTMLInputElement
@@ -289,10 +222,9 @@ export class App {
       const { OTSService } = await import('../services/OTSService')
       const otsService = new OTSService()
 
-      const finalPassphrase = this.state.requiresPassphrase
-        ? passphrase
-        : this.state.passphrase || passphrase
+      const finalPassphrase = this.state.requiresPassphrase ? passphrase : this.state.passphrase
 
+      console.log(`[App] Attempting to retrieve secret with password: ${!!finalPassphrase}`)
       const result = await otsService.retrieveSecret(this.state.retrieveKey, finalPassphrase)
 
       this.setState({
@@ -305,50 +237,18 @@ export class App {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro ao recuperar segredo'
 
-      if (
-        errorMessage.includes('expirou') ||
-        errorMessage.includes('expired') ||
-        errorMessage.includes('visualizado') ||
-        errorMessage.includes('viewed') ||
-        errorMessage.includes('não está mais disponível') ||
-        errorMessage.includes('consumed') ||
-        errorMessage.includes('no longer available') ||
-        errorMessage.includes('Segredo expirado ou já visualizado')
-      ) {
-        this.showError(errorMessage)
-        setTimeout(() => {
-          Router.goHome()
-        }, 3000)
+      console.log(`[App] Error retrieving secret:`, errorMessage)
+
+      if (errorMessage.includes('Este segredo requer uma senha para ser acessado') && !this.state.requiresPassphrase) {
+        this.setState({
+          requiresPassphrase: true,
+        })
         return
       }
 
-      if (errorMessage.includes('rate limited') || errorMessage.includes('Muitas tentativas')) {
-        this.showError(errorMessage)
-        setTimeout(() => {
-          Router.goHome()
-        }, 3000)
+      if (errorMessage.includes('Senha incorreta') && !errorMessage.includes('expirado')) {
+        this.showError('Senha incorreta. Tente novamente.')
         return
-      }
-
-      if (errorMessage.includes('Senha inválida, segredo expirado ou já visualizado')) {
-        const attempts = (this.state.passwordAttempts || 0) + 1
-        
-        if (attempts >= 2) {
-          this.showError('Segredo expirado ou já visualizado')
-          setTimeout(() => {
-            Router.goHome()
-          }, 3000)
-        } else {
-          this.setState({
-            passwordAttempts: attempts
-          })
-          this.showError('Senha incorreta. Tente novamente.')
-        }
-        return
-      }
-
-      if (this.state.passwordAttempts) {
-        this.setState({ passwordAttempts: 0 })
       }
 
       this.showError(errorMessage)
@@ -452,15 +352,14 @@ export class App {
     })
   }
 
-  private handleRoute(route: Route): void {
+  private handleRoute(route: any): void {
     switch (route.type) {
       case 'home':
         this.setState({
-          currentView: 'form',
+          currentView: 'create',
           retrieveKey: undefined,
           passphrase: undefined,
           secretKey: undefined,
-          error: undefined,
         })
         break
       case 'secret':
@@ -470,15 +369,13 @@ export class App {
             retrieveKey: route.params.secretKey,
             passphrase: route.params.passphrase,
             secretKey: undefined,
-            error: undefined,
             requiresPassphrase: false,
-            passwordAttempts: 0,
           })
         }
         break
       case 'notfound':
         this.showError('Página não encontrada')
-        this.setState({ currentView: 'form' })
+        this.setState({ currentView: 'create' })
         break
     }
   }

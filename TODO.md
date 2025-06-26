@@ -23,7 +23,9 @@
 [X] Segredo c/ senha expirada está retornando "Senha inválida" -> Deve retornar Senha inválida, segredo expirado ou já visualizado.
 [X] Segredo s/ senha expirada -> Deve retornar "Segredo expirado ou já visualizado"
 [X] NOVO TESTE (5 MIN/ 15:38): http://localhost:3005/secret/5atmbosvtvntjk1hwzq23mpwdsq3qlx
-[ ] NOVOS TESTES (5 MIN/ 16:05):
+[X] NOVOS TESTES (5 MIN/ 16:05):
 COM SENHA: http://localhost:3005/secret/421kgpgfsqp1ur6ii5py9qkzcoeqd26
 SEM SENHA: http://localhost:3005/secret/3dp0jqedhyfp0n81iao3hwizdmk7io6
 COM SENHA2: http://localhost:3005/secret/1rnf64csu9z56gnnye031qvavglzvv6
+[X] Melhorias de usabilidade e mensagens em caso de segredo expirado e/ou segredo não expirado porém que tenha senha
+[ ] Corrigir botão "Criar Novo Segredo"
