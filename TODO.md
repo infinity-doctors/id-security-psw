@@ -6,6 +6,6 @@
 [X] Melhorias no dark/light mode
 [X] Adicionar ícone da Infinity (./frontend/src/styles/icon.png)
 [X] Corrigir light/dark mode do Footer (criado somente dark mode até então)
-[ ] Melhorias no select em dark mode (atualmente branco)
-[ ] Corrigir método de senha adicional (impossível digitar no input)
+[X] Melhorias no select em dark mode (atualmente branco)
+[X] Corrigir método de senha adicional (impossível digitar no input)
 [ ] Corrigir label "Senha Adicional (Opcional)" e "Tempo de Expiração", pois estão muito escuros no dark mode (quase ilegível)
