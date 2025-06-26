@@ -2,9 +2,7 @@
 
 Solução corporativa baseada no One-Time Secret com interface personalizada para compartilhamento seguro de informações sensíveis.
 
-<img src="./screenshot-1.png" />
-<img src="./screenshot-2.png" />
-<img src="./screenshot-3.png" />
+<img src="./screenshot-1.png" height="600px" />
 
 ## 🏗️ Arquitetura
 
@@ -106,7 +104,7 @@ A interface pode ser customizada editando:
 
 ### Deploy Automático
 - **Frontend**: Deploy automático via pipeline CI/CD ao fazer merge na branch `main`
-- **Backend**: Container Docker com One-Time Secret + AWS ElastiCache Redis
+- **Backend**: Container Docker com One-Time Secret + AWS ElastiCache Redis [TODO]
 
 ### Configuração Backend
 
