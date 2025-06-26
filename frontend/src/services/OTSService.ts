@@ -115,8 +115,8 @@ export class OTSService {
   ): Promise<RetrieveSecretResponse> {
     try {
       const url = passphrase 
-        ? `/secret/${secretKey}/${encodeURIComponent(passphrase)}`
-        : `/secret/${secretKey}`
+        ? `/v1/secret/${secretKey}/${encodeURIComponent(passphrase)}`
+        : `/v1/secret/${secretKey}`
 
       const response = await this.api.get<RetrieveSecretResponse>(url)
       
