@@ -2,6 +2,10 @@
 
 Solução corporativa baseada no One-Time Secret com interface personalizada para compartilhamento seguro de informações sensíveis.
 
+<img src="./screenshot-1.png" />
+<img src="./screenshot-2.png" />
+<img src="./screenshot-3.png" />
+
 ## 🏗️ Arquitetura
 
 - **Backend**: One-Time Secret oficial (pglombardo/one-time-secret) + AWS ElastiCache Redis
