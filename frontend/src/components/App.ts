@@ -13,6 +13,7 @@ export interface AppState {
   passphrase?: string
   error?: string
   requiresPassphrase?: boolean
+  passwordAttempts?: number
 }
 
 export class App {
@@ -210,16 +211,13 @@ export class App {
       return
     }
 
-    // Primeira verificação: tentar acessar sem senha para detectar se está expirado
     if (!this.state.requiresPassphrase && !this.state.passphrase) {
       try {
         const { OTSService } = await import('../services/OTSService')
         const otsService = new OTSService()
         
-        // Tentativa inicial sem senha para detectar estado do segredo
         const result = await otsService.retrieveSecret(this.state.retrieveKey)
-        
-        // Se chegou até aqui, o segredo existe e não precisa de senha
+
         this.setState({
           currentView: 'view',
           secretKey: this.state.retrieveKey,
@@ -232,7 +230,6 @@ export class App {
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Erro ao recuperar segredo'
 
-        // Verificar se é erro de expiração/visualização - prioridade máxima
         if (
           errorMessage.includes('expirou') ||
           errorMessage.includes('expired') ||
@@ -250,7 +247,6 @@ export class App {
           return
         }
 
-        // Verificar se é erro de rate limit
         if (errorMessage.includes('rate limited') || errorMessage.includes('Muitas tentativas')) {
           this.showError(errorMessage)
           setTimeout(() => {
@@ -259,20 +255,16 @@ export class App {
           return
         }
 
-        // Se chegou até aqui, provavelmente precisa de senha
         if (
-          errorMessage.includes('Este segredo requer uma senha para ser acessado') ||
-          errorMessage.includes('Senha inválida, segredo expirado ou já visualizado') ||
-          errorMessage.includes('passphrase') ||
-          errorMessage.includes('senha')
+          errorMessage.includes('Este segredo requer uma senha para ser acessado')
         ) {
           this.setState({
             requiresPassphrase: true,
+            passwordAttempts: 0,
           })
           return
         }
 
-        // Qualquer outro erro
         this.showError(errorMessage)
         setTimeout(() => {
           Router.goHome()
@@ -313,7 +305,6 @@ export class App {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro ao recuperar segredo'
 
-      // Prioridade para erros de expiração/visualização
       if (
         errorMessage.includes('expirou') ||
         errorMessage.includes('expired') ||
@@ -331,7 +322,6 @@ export class App {
         return
       }
 
-      // Rate limit
       if (errorMessage.includes('rate limited') || errorMessage.includes('Muitas tentativas')) {
         this.showError(errorMessage)
         setTimeout(() => {
@@ -340,7 +330,27 @@ export class App {
         return
       }
 
-      // Outros erros
+      if (errorMessage.includes('Senha inválida, segredo expirado ou já visualizado')) {
+        const attempts = (this.state.passwordAttempts || 0) + 1
+        
+        if (attempts >= 2) {
+          this.showError('Segredo expirado ou já visualizado')
+          setTimeout(() => {
+            Router.goHome()
+          }, 3000)
+        } else {
+          this.setState({
+            passwordAttempts: attempts
+          })
+          this.showError('Senha incorreta. Tente novamente.')
+        }
+        return
+      }
+
+      if (this.state.passwordAttempts) {
+        this.setState({ passwordAttempts: 0 })
+      }
+
       this.showError(errorMessage)
       setTimeout(() => {
         Router.goHome()
@@ -462,6 +472,7 @@ export class App {
             secretKey: undefined,
             error: undefined,
             requiresPassphrase: false,
+            passwordAttempts: 0,
           })
         }
         break

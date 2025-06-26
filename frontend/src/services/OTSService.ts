@@ -279,8 +279,16 @@ export class OTSService {
                 return new Error('Segredo expirado ou já visualizado')
               }
 
+              if (data.message.includes('Unknown secret')) {
+                if (hasPassphrase) {
+                  return new Error('Senha inválida, segredo expirado ou já visualizado')
+                } else {
+                  return new Error('Este segredo requer uma senha para ser acessado')
+                }
+              }
+
               if (data.message.includes('passphrase') || data.message.includes('password') || 
-                  data.message.includes('Wrong') || data.message.includes('Unknown secret')) {
+                  data.message.includes('Wrong')) {
                 if (hasPassphrase) {
                   return new Error('Senha inválida, segredo expirado ou já visualizado')
                 } else {
