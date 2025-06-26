@@ -112,31 +112,43 @@ export class OTSService {
     passphrase?: string
   ): Promise<{ secret: string }> {
     try {
-      console.log(`[OTSService] Retrieving secret: ${secretKey}, hasPassphrase: ${!!passphrase}`)
-
       const body = new URLSearchParams()
       if (passphrase) {
         body.append('passphrase', passphrase)
       }
 
-      const response = await this.api.post<any>(`/v1/secret/${secretKey}`, body)
+      const response = await axios.post<any>(`${this.baseURL}/v1/secret/${secretKey}`, body, {
+        timeout: 30000,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json'
+        }
+      })
 
-      console.log(`[OTSService] Secret retrieved successfully`)
-      return { secret: response.data.value || response.data.secret || '' }
-    } catch (error) {
-      console.error(`[OTSService] Error retrieving secret ${secretKey}:`, error)
-      
-      const analysis = this.analyzeSecretError(error, !!passphrase)
-      
-      if (analysis.isPasswordRequired) {
-        throw new Error(analysis.message)
-      } else if (analysis.isExpired) {
-        throw new Error(analysis.message)
-      } else if (analysis.isRateLimit) {
-        throw new Error(analysis.message)
-      } else {
-        throw new Error(analysis.message)
+      if (response.data.message) {
+        throw new Error('Este segredo não está disponível. Pode estar expirado, ter sido acessado anteriormente, ter uma senha incorreta ou não existir.')
       }
+
+      const secretValue = response.data.value || response.data.secret
+      if (!secretValue) {
+        throw new Error('Este segredo não está disponível. Pode estar expirado, ter sido acessado anteriormente, ter uma senha incorreta ou não existir.')
+      }
+
+      return { secret: secretValue }
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 404 && error.response?.data?.message?.includes('Unknown secret')) {
+          throw new Error('Este segredo não está disponível. Pode estar expirado, ter sido acessado anteriormente, ter uma senha incorreta ou não existir.')
+        }
+        
+        throw this.handleError(error, !!passphrase)
+      } else {
+        if (error instanceof Error && error.message.includes('Este segredo não está disponível')) {
+          throw error
+        }
+      }
+      
+      throw new Error('Este segredo não está disponível. Pode estar expirado, ter sido acessado anteriormente, ter uma senha incorreta ou não existir.')
     }
   }
 
@@ -321,101 +333,5 @@ export class OTSService {
     return error instanceof Error 
       ? error 
       : new Error('Erro desconhecido ocorreu')
-  }
-
-  /**
-   * @description Check if error indicates password is required vs secret expired
-   * @param error - The error response
-   * @param hadPassword - Whether a password was provided
-   * @returns Analyzed error information
-   */
-  private analyzeSecretError(error: any, hadPassword: boolean): {
-    isPasswordRequired: boolean;
-    isExpired: boolean;
-    isRateLimit: boolean;
-    message: string;
-  } {
-    const errorData = error.response?.data || {}
-    const errorMessage = errorData.message || error.message || 'Erro desconhecido'
-
-    console.log(`[OTSService] Analyzing error:`, { errorMessage, hadPassword, errorData })
-
-    // Rate limit detection
-    if (error.response?.status === 429 || errorMessage.includes('rate limit')) {
-      return {
-        isPasswordRequired: false,
-        isExpired: false,
-        isRateLimit: true,
-        message: 'Muitas tentativas. Tente novamente em alguns minutos.'
-      }
-    }
-
-    // Backend unavailable
-    if (error.response?.status === 502) {
-      return {
-        isPasswordRequired: false,
-        isExpired: false,
-        isRateLimit: false,
-        message: 'Serviço temporariamente indisponível. Tente novamente em alguns minutos.'
-      }
-    }
-
-    // "Unknown secret" can mean:
-    // 1. Secret requires password (if no password was provided)
-    // 2. Secret is expired/viewed (if password was provided or this is 2nd+ attempt)
-    if (errorMessage === 'Unknown secret') {
-      if (!hadPassword) {
-        // First attempt without password - likely needs password
-        return {
-          isPasswordRequired: true,
-          isExpired: false,
-          isRateLimit: false,
-          message: 'Este segredo requer uma senha para ser acessado'
-        }
-      } else {
-        // Had password but still "Unknown secret" - likely expired or wrong password
-        return {
-          isPasswordRequired: false,
-          isExpired: true,
-          isRateLimit: false,
-          message: 'Senha incorreta ou segredo expirado/já visualizado'
-        }
-      }
-    }
-
-    // Direct expiration indicators
-    if (
-      errorMessage.includes('expirou') ||
-      errorMessage.includes('expired') ||
-      errorMessage.includes('viewed') ||
-      errorMessage.includes('visualizado') ||
-      errorMessage.includes('consumed') ||
-      errorMessage.includes('no longer available')
-    ) {
-      return {
-        isPasswordRequired: false,
-        isExpired: true,
-        isRateLimit: false,
-        message: 'Segredo expirado ou já visualizado'
-      }
-    }
-
-    // 404 can indicate expired or non-existent
-    if (error.response?.status === 404) {
-      return {
-        isPasswordRequired: false,
-        isExpired: true,
-        isRateLimit: false,
-        message: 'Segredo não encontrado ou expirado'
-      }
-    }
-
-    // Generic error
-    return {
-      isPasswordRequired: false,
-      isExpired: false,
-      isRateLimit: false,
-      message: errorMessage
-    }
   }
 } 

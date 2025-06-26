@@ -18,7 +18,6 @@ interface AppState {
   secretData?: SecretData
   retrieveKey?: string
   passphrase?: string
-  requiresPassphrase?: boolean
   secretKey?: string
 }
 
@@ -207,25 +206,18 @@ export class App {
       return
     }
 
-    let passphrase = this.state.passphrase
-    if (this.state.requiresPassphrase && !passphrase) {
-      const passphraseInput = document.getElementById('retrieve-passphrase') as HTMLInputElement
-      passphrase = passphraseInput?.value || ''
-
-      if (!passphrase.trim()) {
-        this.showError('Por favor, digite a senha do segredo')
-        return
-      }
-    }
+    // Sempre pega a senha do campo de input, mesmo que esteja vazio
+    const passphraseInput = document.getElementById('retrieve-passphrase') as HTMLInputElement
+    const passphrase = passphraseInput?.value || this.state.passphrase || ''
 
     try {
       const { OTSService } = await import('../services/OTSService')
       const otsService = new OTSService()
 
-      const finalPassphrase = this.state.requiresPassphrase ? passphrase : this.state.passphrase
-
-      console.log(`[App] Attempting to retrieve secret with password: ${!!finalPassphrase}`)
-      const result = await otsService.retrieveSecret(this.state.retrieveKey, finalPassphrase)
+      // Enviar a senha se ela não estiver vazia, caso contrário enviar undefined
+      const passphraseToSend = passphrase.trim() !== '' ? passphrase.trim() : undefined
+      
+      const result = await otsService.retrieveSecret(this.state.retrieveKey, passphraseToSend)
 
       this.setState({
         currentView: 'view',
@@ -237,20 +229,7 @@ export class App {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro ao recuperar segredo'
 
-      console.log(`[App] Error retrieving secret:`, errorMessage)
-
-      if (errorMessage.includes('Este segredo requer uma senha para ser acessado') && !this.state.requiresPassphrase) {
-        this.setState({
-          requiresPassphrase: true,
-        })
-        return
-      }
-
-      if (errorMessage.includes('Senha incorreta') && !errorMessage.includes('expirado')) {
-        this.showError('Senha incorreta. Tente novamente.')
-        return
-      }
-
+      // Mensagem única para qualquer erro
       this.showError(errorMessage)
       setTimeout(() => {
         Router.goHome()
@@ -369,7 +348,6 @@ export class App {
             retrieveKey: route.params.secretKey,
             passphrase: route.params.passphrase,
             secretKey: undefined,
-            requiresPassphrase: false,
           })
         }
         break
@@ -381,9 +359,6 @@ export class App {
   }
 
   private renderRetrieveView(): string {
-    const hasPassphraseInUrl = !!this.state.passphrase
-    const needsPassphraseInput = this.state.requiresPassphrase && !hasPassphraseInUrl
-
     return `
       <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 animate-slide-up">
         <div class="text-center mb-8">
@@ -394,23 +369,16 @@ export class App {
           </div>
           <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Segredo Compartilhado</h1>
           <p class="text-gray-600 dark:text-gray-300">
-            ${
-              needsPassphraseInput
-                ? 'Digite a senha para acessar o conteúdo compartilhado.'
-                : 'Clique no botão abaixo para revelar o conteúdo compartilhado.'
-            }
+            Digite a senha (se houver) e clique em revelar para acessar o conteúdo compartilhado.
             <span class="font-medium text-warning-600 dark:text-warning-400 block mt-1">Atenção: só pode ser visualizado uma única vez!</span>
           </p>
         </div>
 
         <form id="retrieve-form" class="space-y-6">
-          ${
-            needsPassphraseInput
-              ? `
           <!-- Passphrase Input -->
           <div>
             <label for="retrieve-passphrase" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Senha do Segredo
+              Senha do Segredo (opcional)
             </label>
             <div class="relative">
               <input
@@ -418,8 +386,7 @@ export class App {
                 id="retrieve-passphrase"
                 name="passphrase"
                 class="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:focus:border-primary-400"
-                placeholder="Digite a senha para acessar o segredo..."
-                required
+                placeholder="Digite a senha se o segredo estiver protegido..."
                 autocomplete="off"
               />
               <button
@@ -434,9 +401,6 @@ export class App {
               </button>
             </div>
           </div>
-          `
-              : ''
-          }
 
           <!-- Reveal Button -->
           <div class="text-center space-y-4">

@@ -29,7 +29,7 @@ SEM SENHA: http://localhost:3005/secret/3dp0jqedhyfp0n81iao3hwizdmk7io6
 COM SENHA2: http://localhost:3005/secret/1rnf64csu9z56gnnye031qvavglzvv6
 [X] Melhorias de usabilidade e mensagens em caso de segredo expirado e/ou segredo não expirado porém que tenha senha
 [X] Corrigir botão "Criar Novo Segredo"
-[ ] NOVOS TESTES (5 MIN/ 16:26):
+[X] NOVOS TESTES (5 MIN/ 16:26):
 SEM SENHA: http://localhost:3005/secret/207tuwi1zqs51iyr4efng6nxwuse8ez
 COM SENHA: http://localhost:3005/secret/3zx9pia0xhg2g8n5n6dlnlq2gfvvzfq
 [ ] Criar botão de "Criar um novo segredo" na tela de "Segredo Compartilhado (revelar segredo)"
