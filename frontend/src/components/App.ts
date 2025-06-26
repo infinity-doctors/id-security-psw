@@ -12,6 +12,7 @@ export interface AppState {
   retrieveKey?: string
   passphrase?: string
   error?: string
+  requiresPassphrase?: boolean
 }
 
 export class App {
@@ -129,7 +130,12 @@ export class App {
           this.handleBackToForm()
           break
         case 'reveal-secret':
-          this.handleRevealSecret()
+          this.handleRevealSecret(e)
+          break
+        case 'toggle-retrieve-password':
+          e.preventDefault()
+          e.stopPropagation()
+          this.toggleRetrievePasswordVisibility()
           break
         case 'toggle-theme':
           e.preventDefault()
@@ -160,6 +166,11 @@ export class App {
         secretView.bindEvents(container)
         break
       case 'retrieve':
+        const retrieveForm = container.querySelector('#retrieve-form') as HTMLFormElement
+        retrieveForm?.addEventListener('submit', (e) => {
+          e.preventDefault()
+          this.handleRevealSecret(e)
+        })
         break
     }
   }
@@ -182,17 +193,40 @@ export class App {
     Router.goHome()
   }
 
-  private async handleRevealSecret(): Promise<void> {
+  private toggleRetrievePasswordVisibility(): void {
+    const input = document.getElementById('retrieve-passphrase') as HTMLInputElement
+    if (input) {
+      input.type = input.type === 'password' ? 'text' : 'password'
+    }
+  }
+
+  private async handleRevealSecret(e?: Event): Promise<void> {
+    if (e) {
+      e.preventDefault()
+    }
+
     if (!this.state.retrieveKey) {
       this.showError('Chave do segredo não encontrada')
       return
+    }
+
+    // Get passphrase from input if the secret requires it
+    let passphrase = this.state.passphrase
+    if (this.state.requiresPassphrase && !passphrase) {
+      const passphraseInput = document.getElementById('retrieve-passphrase') as HTMLInputElement
+      passphrase = passphraseInput?.value || ''
+      
+      if (!passphrase.trim()) {
+        this.showError('Por favor, digite a senha do segredo')
+        return
+      }
     }
 
     try {
       const { OTSService } = await import('../services/OTSService')
       const otsService = new OTSService()
 
-      const result = await otsService.retrieveSecret(this.state.retrieveKey, this.state.passphrase)
+      const result = await otsService.retrieveSecret(this.state.retrieveKey, passphrase)
 
       this.setState({
         currentView: 'view',
@@ -202,7 +236,20 @@ export class App {
 
       this.showRetrievedSecret(result.secret)
     } catch (error) {
-      this.showError(error instanceof Error ? error.message : 'Erro ao recuperar segredo')
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao recuperar segredo'
+      
+      // Check if error is due to missing passphrase
+      if (errorMessage.includes('passphrase') || errorMessage.includes('senha') || 
+          (errorMessage.includes('não encontrado') && !this.state.requiresPassphrase)) {
+        // Secret might require a passphrase
+        this.setState({
+          requiresPassphrase: true
+        })
+        this.showError('Este segredo requer uma senha para ser acessado')
+        return
+      }
+
+      this.showError(errorMessage)
 
       setTimeout(() => {
         Router.goHome()
@@ -317,13 +364,14 @@ export class App {
         break
       case 'secret':
         if (route.params?.secretKey) {
-          this.setState({
-            currentView: 'retrieve',
-            retrieveKey: route.params.secretKey,
-            passphrase: route.params.passphrase,
-            secretKey: undefined,
-            error: undefined,
-          })
+                  this.setState({
+          currentView: 'retrieve',
+          retrieveKey: route.params.secretKey,
+          passphrase: route.params.passphrase,
+          secretKey: undefined,
+          error: undefined,
+          requiresPassphrase: false, // Reset flag
+        })
         }
         break
       case 'notfound':
@@ -334,47 +382,86 @@ export class App {
   }
 
   private renderRetrieveView(): string {
+    const hasPassphraseInUrl = !!this.state.passphrase
+    const needsPassphraseInput = this.state.requiresPassphrase && !hasPassphraseInUrl
+    
     return `
-      <div class="bg-white rounded-xl shadow-lg p-8 animate-slide-up">
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 animate-slide-up">
         <div class="text-center mb-8">
-          <div class="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="w-16 h-16 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-primary-600 dark:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
             </svg>
           </div>
-          <h1 class="text-3xl font-bold text-gray-900 mb-2">Segredo Compartilhado</h1>
-          <p class="text-gray-600">
-            Clique no botão abaixo para revelar o conteúdo compartilhado. 
-            <span class="font-medium text-warning-600">Atenção: só pode ser visualizado uma única vez!</span>
+          <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Segredo Compartilhado</h1>
+          <p class="text-gray-600 dark:text-gray-300">
+            ${needsPassphraseInput
+              ? 'Digite a senha para acessar o conteúdo compartilhado.'
+              : 'Clique no botão abaixo para revelar o conteúdo compartilhado.'
+            }
+            <span class="font-medium text-warning-600 dark:text-warning-400 block mt-1">Atenção: só pode ser visualizado uma única vez!</span>
           </p>
         </div>
 
-        <div class="text-center space-y-4">
-          <button
-            type="button"
-            class="btn btn-primary w-full"
-            data-action="reveal-secret"
-          >
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-            </svg>
-            Revelar Segredo
-          </button>
-          
-          <div class="text-sm text-gray-500">
-            ID do Segredo: <code class="bg-gray-100 px-2 py-1 rounded text-xs">${this.state.retrieveKey?.substring(0, 10)}...</code>
+        <form id="retrieve-form" class="space-y-6">
+          ${needsPassphraseInput ? `
+          <!-- Passphrase Input -->
+          <div>
+            <label for="retrieve-passphrase" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Senha do Segredo
+            </label>
+            <div class="relative">
+              <input
+                type="password"
+                id="retrieve-passphrase"
+                name="passphrase"
+                class="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:focus:border-primary-400"
+                placeholder="Digite a senha para acessar o segredo..."
+                required
+                autocomplete="off"
+              />
+              <button
+                type="button"
+                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                data-action="toggle-retrieve-password"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+              </button>
+            </div>
           </div>
-        </div>
+          ` : ''}
 
-        <div class="bg-warning-50 border border-warning-200 rounded-lg p-4 mt-6">
+          <!-- Reveal Button -->
+          <div class="text-center space-y-4">
+            <button
+              type="submit"
+              class="btn btn-primary w-full"
+              data-action="reveal-secret"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+              </svg>
+              Revelar Segredo
+            </button>
+            
+            <div class="text-sm text-gray-500 dark:text-gray-400">
+              ID do Segredo: <code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs">${this.state.retrieveKey?.substring(0, 10)}...</code>
+            </div>
+          </div>
+        </form>
+
+        <div class="bg-warning-50 dark:bg-warning-900/20 border border-warning-200 dark:border-warning-800/50 rounded-lg p-4 mt-6">
           <div class="flex items-start">
-            <svg class="w-5 h-5 text-warning-600 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 text-warning-600 dark:text-warning-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z"></path>
             </svg>
             <div class="text-sm">
-              <h4 class="font-medium text-warning-800 mb-1">Importante</h4>
-              <p class="text-warning-700">
+              <h4 class="font-medium text-warning-800 dark:text-warning-200 mb-1">Importante</h4>
+              <p class="text-warning-700 dark:text-warning-300">
                 Após visualizar o conteúdo, ele será permanentemente excluído e não poderá ser acessado novamente.
               </p>
             </div>
