@@ -2,6 +2,7 @@ import './styles/main.css'
 import 'virtual:windi.css'
 import { App } from './components/App'
 import { Router } from './utils/Router'
+import { ThemeManager } from './utils/ThemeManager'
 
 document.addEventListener('DOMContentLoaded', () => {
   const appContainer = document.getElementById('app')

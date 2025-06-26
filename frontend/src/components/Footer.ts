@@ -27,15 +27,6 @@ export class Footer {
               <div class="text-gray-400">
                 <span class="hidden sm:inline">v1.0.0</span>
               </div>
-
-              <!-- Support Link -->
-              <button
-                type="button"
-                class="text-primary-600 hover:text-primary-700 font-medium"
-                data-action="show-support"
-              >
-                Suporte
-              </button>
             </div>
           </div>
 

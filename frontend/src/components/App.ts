@@ -4,6 +4,7 @@ import { Header } from './Header'
 import { Footer } from './Footer'
 import { NotificationManager } from './NotificationManager'
 import { Router, Route } from '../utils/Router'
+import { ThemeManager } from '../utils/ThemeManager'
 
 export interface AppState {
   currentView: 'form' | 'view' | 'success' | 'retrieve'
@@ -24,6 +25,9 @@ export class App {
   }
 
   public init(initialRoute?: Route): void {
+    // Initialize theme manager
+    ThemeManager.init()
+    
     if (initialRoute) {
       this.handleRoute(initialRoute)
     }
@@ -39,7 +43,7 @@ export class App {
 
   private render(): void {
     this.container.innerHTML = `
-      <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col">
+      <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex flex-col">
         ${new Header().render()}
         
         <main class="flex-1 flex items-center justify-center p-4">
@@ -122,6 +126,10 @@ export class App {
           break
         case 'reveal-secret':
           this.handleRevealSecret()
+          break
+        case 'toggle-theme':
+          console.log('Toggle theme clicked!')
+          ThemeManager.toggle()
           break
       }
     })

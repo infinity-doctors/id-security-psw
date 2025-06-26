@@ -14,11 +14,11 @@ export class SecretForm {
 
   public render(): string {
     return `
-      <div class="bg-white rounded-xl shadow-lg p-8 animate-slide-up">
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 animate-slide-up">
         <!-- Header -->
         <div class="text-center mb-8">
-          <h1 class="text-3xl font-bold text-gray-900 mb-2">Compartilhamento Seguro</h1>
-          <p class="text-gray-600">
+          <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Compartilhamento Seguro</h1>
+          <p class="text-gray-600 dark:text-gray-300">
             Crie um link seguro para compartilhar informações sensíveis que só pode ser acessado uma única vez.
           </p>
         </div>
@@ -27,7 +27,7 @@ export class SecretForm {
         <form id="secret-form" class="space-y-6">
           <!-- Secret Content -->
           <div>
-            <label for="secret-content" class="block text-sm font-medium text-gray-700 mb-2">
+            <label for="secret-content" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Conteúdo do Segredo *
             </label>
             <textarea
@@ -35,7 +35,7 @@ export class SecretForm {
               name="secret"
               rows="6"
               required
-              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none font-mono text-sm"
+              class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none font-mono text-sm"
               placeholder="Digite aqui o conteúdo que deseja compartilhar de forma segura..."
             ></textarea>
             <div class="mt-1 text-xs text-gray-500">
