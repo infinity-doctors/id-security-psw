@@ -314,7 +314,7 @@ export class App {
             <button
               type="button"
               class="btn btn-primary"
-              data-action="back-to-form"
+              onclick="window.location.href = '/'"
             >
               Criar Novo Segredo
             </button>
