@@ -37,6 +37,7 @@ export class App {
     ThemeManager.init()
     
     this.render()
+    this.bindEvents()
     
     if (initialRoute) {
       this.handleRoute(initialRoute)
