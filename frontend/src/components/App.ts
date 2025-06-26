@@ -63,6 +63,8 @@ export class App {
 
     this.notificationManager.init(document.getElementById('notifications')!)
 
+    ThemeManager.refreshIcon()
+
     const contentElement = document.getElementById('app-content')
     if (contentElement) {
       this.bindCurrentViewEvents(contentElement)
@@ -118,7 +120,9 @@ export class App {
   private bindEvents(): void {
     this.container.addEventListener('click', e => {
       const target = e.target as HTMLElement
-      const action = target.dataset.action
+      
+      const actionElement = target.closest('[data-action]') as HTMLElement
+      const action = actionElement?.dataset.action
 
       switch (action) {
         case 'back-to-form':
@@ -128,7 +132,14 @@ export class App {
           this.handleRevealSecret()
           break
         case 'toggle-theme':
-          console.log('Toggle theme clicked!')
+          e.preventDefault()
+          e.stopPropagation()
+          console.log('Toggle theme clicked!', {
+            clickedElement: target.tagName,
+            actionElement: actionElement?.tagName,
+            currentTheme: ThemeManager.getCurrentTheme(),
+            timestamp: new Date().toISOString()
+          })
           ThemeManager.toggle()
           break
       }

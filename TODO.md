@@ -3,5 +3,7 @@
 [X] Implementação de Dark Mode
 [X] Avaliar possibilidade de FAQ
 [X] Corrigir importação de arquivos (alerta quando './Header' mas correto quando './Header.ts')
-[ ] Adicionar ícone da Infinity
-[ ] Melhorias no dark/light mode
+[X] Melhorias no dark/light mode
+[ ] Melhorias no select em dark mode (atualmente branco)
+[ ] Adicionar ícone da Infinity (./frontend/src/styles/icon.png)
+[ ] Corrigir light/dark mode do Footer (criado somente dark mode até então)
