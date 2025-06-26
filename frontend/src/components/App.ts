@@ -28,7 +28,7 @@ export class App {
   public init(initialRoute?: Route): void {
     // Initialize theme manager
     ThemeManager.init()
-    
+
     if (initialRoute) {
       this.handleRoute(initialRoute)
     }
@@ -121,7 +121,7 @@ export class App {
   private bindEvents(): void {
     this.container.addEventListener('click', e => {
       const target = e.target as HTMLElement
-      
+
       const actionElement = target.closest('[data-action]') as HTMLElement
       const action = actionElement?.dataset.action
 
@@ -144,7 +144,7 @@ export class App {
             clickedElement: target.tagName,
             actionElement: actionElement?.tagName,
             currentTheme: ThemeManager.getCurrentTheme(),
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           })
           ThemeManager.toggle()
           break
@@ -167,7 +167,7 @@ export class App {
         break
       case 'retrieve':
         const retrieveForm = container.querySelector('#retrieve-form') as HTMLFormElement
-        retrieveForm?.addEventListener('submit', (e) => {
+        retrieveForm?.addEventListener('submit', e => {
           e.preventDefault()
           this.handleRevealSecret(e)
         })
@@ -210,12 +210,11 @@ export class App {
       return
     }
 
-    // Get passphrase from input if the secret requires it
     let passphrase = this.state.passphrase
     if (this.state.requiresPassphrase && !passphrase) {
       const passphraseInput = document.getElementById('retrieve-passphrase') as HTMLInputElement
       passphrase = passphraseInput?.value || ''
-      
+
       if (!passphrase.trim()) {
         this.showError('Por favor, digite a senha do segredo')
         return
@@ -226,7 +225,11 @@ export class App {
       const { OTSService } = await import('../services/OTSService')
       const otsService = new OTSService()
 
-      const result = await otsService.retrieveSecret(this.state.retrieveKey, passphrase)
+      const finalPassphrase = this.state.requiresPassphrase
+        ? passphrase
+        : this.state.passphrase || passphrase
+
+      const result = await otsService.retrieveSecret(this.state.retrieveKey, finalPassphrase)
 
       this.setState({
         currentView: 'view',
@@ -237,17 +240,37 @@ export class App {
       this.showRetrievedSecret(result.secret)
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro ao recuperar segredo'
-      
-      // Check if error is due to missing passphrase
-      if (errorMessage.includes('passphrase') || errorMessage.includes('senha') || 
-          (errorMessage.includes('não encontrado') && !this.state.requiresPassphrase)) {
-        // Secret might require a passphrase
-        this.setState({
-          requiresPassphrase: true
-        })
-        this.showError('Este segredo requer uma senha para ser acessado')
+
+             if (
+         errorMessage.includes('expirou') ||
+         errorMessage.includes('expired') ||
+         errorMessage.includes('visualizado') ||
+         errorMessage.includes('viewed') ||
+         errorMessage.includes('não está mais disponível') ||
+         errorMessage.includes('consumed') ||
+         errorMessage.includes('no longer available') ||
+         errorMessage.includes('rate limited') ||
+         errorMessage.includes('Muitas tentativas')
+       ) {
+        this.showError(errorMessage)
+        setTimeout(() => {
+          Router.goHome()
+        }, 3000)
         return
       }
+
+             if (
+         !this.state.requiresPassphrase &&
+         !this.state.passphrase &&
+         (errorMessage.includes('Senha incorreta ou obrigatória') ||
+           errorMessage.includes('passphrase') ||
+           errorMessage.includes('senha'))
+       ) {
+         this.setState({
+           requiresPassphrase: true,
+         })
+         return
+       }
 
       this.showError(errorMessage)
 
@@ -364,14 +387,14 @@ export class App {
         break
       case 'secret':
         if (route.params?.secretKey) {
-                  this.setState({
-          currentView: 'retrieve',
-          retrieveKey: route.params.secretKey,
-          passphrase: route.params.passphrase,
-          secretKey: undefined,
-          error: undefined,
-          requiresPassphrase: false, // Reset flag
-        })
+          this.setState({
+            currentView: 'retrieve',
+            retrieveKey: route.params.secretKey,
+            passphrase: route.params.passphrase,
+            secretKey: undefined,
+            error: undefined,
+            requiresPassphrase: false,
+          })
         }
         break
       case 'notfound':
@@ -384,7 +407,7 @@ export class App {
   private renderRetrieveView(): string {
     const hasPassphraseInUrl = !!this.state.passphrase
     const needsPassphraseInput = this.state.requiresPassphrase && !hasPassphraseInUrl
-    
+
     return `
       <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 animate-slide-up">
         <div class="text-center mb-8">
@@ -395,16 +418,19 @@ export class App {
           </div>
           <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Segredo Compartilhado</h1>
           <p class="text-gray-600 dark:text-gray-300">
-            ${needsPassphraseInput
-              ? 'Digite a senha para acessar o conteúdo compartilhado.'
-              : 'Clique no botão abaixo para revelar o conteúdo compartilhado.'
+            ${
+              needsPassphraseInput
+                ? 'Digite a senha para acessar o conteúdo compartilhado.'
+                : 'Clique no botão abaixo para revelar o conteúdo compartilhado.'
             }
             <span class="font-medium text-warning-600 dark:text-warning-400 block mt-1">Atenção: só pode ser visualizado uma única vez!</span>
           </p>
         </div>
 
         <form id="retrieve-form" class="space-y-6">
-          ${needsPassphraseInput ? `
+          ${
+            needsPassphraseInput
+              ? `
           <!-- Passphrase Input -->
           <div>
             <label for="retrieve-passphrase" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -432,7 +458,9 @@ export class App {
               </button>
             </div>
           </div>
-          ` : ''}
+          `
+              : ''
+          }
 
           <!-- Reveal Button -->
           <div class="text-center space-y-4">

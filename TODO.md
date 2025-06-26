@@ -15,4 +15,7 @@
 [X] Testar agressivos de segredo de 1h s/ senha: http://localhost:3000/secret/2zitzkmhlvsrgs14qb34fr2312s66mh
 [X] Testar 5 min (12h26 > 12h31 - http://localhost:3000/secret/1co6ivrfrnpr1s9mz3yqnmokhun2kys)
 [X] Atualizar favicon baseado no ícone do header 
-[ ] Casos expirados estão exigindo senha
+[X] Casos expirados estão exigindo senha
+[X] Correção de "Unknown secret" quando segredo tiver senha
+[ ] Tela de "Link Seguro Criado!" não possui dark mode
+[ ] NOVO TESTE (5 MIN/ 15:19): http://localhost:3005/secret/66r2tarmadyle2sz1dlawh8sosxecew

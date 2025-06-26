@@ -119,11 +119,15 @@ export class OTSService {
         formData.append('passphrase', passphrase)
       }
 
+      console.log(`[OTSService] Retrieving secret: ${secretKey}, hasPassphrase: ${!!passphrase}`)
+
       const response = await this.api.post<any>(`/v1/secret/${secretKey}`, formData, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
         }
       })
+      
+      console.log(`[OTSService] Response status: ${response.status}`, response.data)
       
       if (!response.data || !response.data.value) {
         throw new Error('Segredo não encontrado ou já foi visualizado')
@@ -134,6 +138,7 @@ export class OTSService {
         metadata_key: response.data.secret_key || secretKey
       }
     } catch (error) {
+      console.error(`[OTSService] Error retrieving secret ${secretKey}:`, error)
       throw this.handleError(error)
     }
   }
@@ -236,6 +241,8 @@ export class OTSService {
    * @throws An error if the error is not found
    */
   private handleError(error: any): Error {
+    console.error('[OTSService] handleError called with:', error)
+    
     if (axios.isAxiosError(error)) {
       if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
         return new Error('Timeout: Verifique sua conexão com a internet')
@@ -244,20 +251,51 @@ export class OTSService {
       if (error.response) {
         const status = error.response.status
         const data = error.response.data
+        
+        console.log(`[OTSService] Error response - Status: ${status}, Data:`, data)
 
         switch (status) {
           case 400:
+            if (data?.message && (data.message.includes('passphrase') || data.message.includes('password'))) {
+              return new Error('Senha incorreta ou obrigatória')
+            }
             return new Error(data?.message || 'Dados inválidos fornecidos')
           case 401:
             return new Error('Não autorizado: Verifique suas credenciais')
           case 403:
             return new Error('Acesso negado')
           case 404:
-            return new Error('Segredo não encontrado ou já foi visualizado')
+            if (data?.message) {
+              
+              if (data.message.includes('rate limited') || data.message.includes('Cripes!')) {
+                return new Error('Muitas tentativas em pouco tempo. Aguarde alguns segundos e tente novamente.')
+              }
+
+              if (data.message.includes('expired') || data.message.includes('expirado') || data.message.includes('consumed')) {
+                return new Error('Este segredo expirou e não está mais disponível')
+              }
+
+              if (data.message.includes('viewed') || data.message.includes('visualizado') || data.message.includes('no longer available')) {
+                return new Error('Este segredo já foi visualizado e não está mais disponível')
+              }
+
+              if (data.message.includes('passphrase') || data.message.includes('password') || 
+                  data.message.includes('Wrong') || data.message.includes('Unknown secret')) {
+                return new Error('Senha incorreta ou obrigatória')
+              }
+              
+              if (data.message.length > 10) {
+                return new Error(data.message)
+              }
+            }
+            return new Error('Segredo não encontrado, expirado ou já foi visualizado')
           case 429:
             return new Error('Muitas tentativas: Tente novamente em alguns minutos')
           case 500:
-            return new Error('Erro interno do servidor: Tente novamente mais tarde')
+            console.error('[OTSService] Server error 500 - Data:', data)
+            return new Error(`Erro interno do servidor: ${data?.message || 'Tente novamente mais tarde'}`)
+          case 502:
+            return new Error('Backend indisponível: Verifique se o serviço está funcionando')
           case 503:
             return new Error('Serviço temporariamente indisponível')
           default:
@@ -266,7 +304,8 @@ export class OTSService {
       }
 
       if (error.request) {
-        return new Error('Erro de conexão: Verifique sua internet e tente novamente')
+        console.error('[OTSService] No response received:', error.request)
+        return new Error('Erro de conexão: Verifique se o backend está rodando e tente novamente')
       }
     }
 
