@@ -416,6 +416,17 @@ export class App {
               </svg>
               Revelar Segredo
             </button>
+
+            <button
+              type="button"
+              class="btn btn-outline w-full"
+              onclick="window.location.href = '/'"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              Criar Novo Segredo
+            </button>
             
             <div class="text-sm text-gray-500 dark:text-gray-400">
               ID do Segredo: <code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs">${this.state.retrieveKey?.substring(0, 10)}...</code>
