@@ -12,5 +12,7 @@
 [X] Revisar e corrigir Docker
 [X] Revisar e adicionar dependências no arquivo `README.md` a fim de documentar as necessidades do backend e do frontend
 [X] Testes agressivos de segredos com senha: (http://localhost:3000/secret/1f2qrqq5o62rdabkvd5bp6uv2xoaywm / 123senha)
-[ ] Testar agressivos de segredo de 1h s/ senha: http://localhost:3000/secret/2zitzkmhlvsrgs14qb34fr2312s66mh
-[ ] Atualizar favicon baseado no ícone do header
+[X] Testar agressivos de segredo de 1h s/ senha: http://localhost:3000/secret/2zitzkmhlvsrgs14qb34fr2312s66mh
+[X] Testar 5 min (12h26 > 12h31 - http://localhost:3000/secret/1co6ivrfrnpr1s9mz3yqnmokhun2kys)
+[X] Atualizar favicon baseado no ícone do header 
+[ ] Casos expirados estão exigindo senha
