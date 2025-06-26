@@ -5,27 +5,34 @@ export interface ValidationResult {
 
 export class ValidationUtils {
   /**
-   * Validate secret content
+   * @description Validate secret content
+   * @param secret - The secret to validate
+   * @param passphrase - The passphrase to validate
+   * @returns An object with the validation result
+   * @throws An error if the secret is empty
+   * @throws An error if the secret is too long
+   * @throws An error if the secret is too short
+   * @throws An error if the passphrase is empty
+   * @throws An error if the passphrase is too long
+   * @throws An error if the passphrase is too short
+   * @throws An error if the passphrase is not a string
+   * @throws An error if the passphrase is not a valid string
    */
   public static validateSecret(secret: string, passphrase?: string): ValidationResult {
     const errors: string[] = []
 
-    // Required field validation
     if (!secret || secret.trim().length === 0) {
-      errors.push('O conteúdo do segredo é obrigatório')
+      errors.push('The secret content is required')
     }
 
-    // Length validation
     if (secret && secret.length > 5000) {
-      errors.push('O conteúdo não pode exceder 5000 caracteres')
+      errors.push('The secret content cannot exceed 5000 characters')
     }
 
-    // Minimum content validation
     if (secret && secret.trim().length < 3) {
-      errors.push('O conteúdo deve ter pelo menos 3 caracteres')
+      errors.push('The secret content must have at least 3 characters')
     }
 
-    // Passphrase validation (if provided)
     if (passphrase !== undefined && passphrase !== null && passphrase !== '') {
       const passphraseResult = this.validatePassphrase(passphrase)
       if (!passphraseResult.isValid) {
@@ -33,7 +40,6 @@ export class ValidationUtils {
       }
     }
 
-    // Content security validation
     const securityResult = this.validateSecretSecurity(secret)
     if (!securityResult.isValid) {
       errors.push(...securityResult.errors)
@@ -46,27 +52,32 @@ export class ValidationUtils {
   }
 
   /**
-   * Validate passphrase
+   * @description Validate passphrase
+   * @param passphrase - The passphrase to validate
+   * @returns An object with the validation result
+   * @throws An error if the passphrase is empty
+   * @throws An error if the passphrase is too long
+   * @throws An error if the passphrase is too short
+   * @throws An error if the passphrase is not a string
    */
   public static validatePassphrase(passphrase: string): ValidationResult {
     const errors: string[] = []
 
     if (passphrase.length < 4) {
-      errors.push('A senha deve ter pelo menos 4 caracteres')
+      errors.push('The passphrase must have at least 4 characters')
     }
 
     if (passphrase.length > 128) {
-      errors.push('A senha não pode exceder 128 caracteres')
+      errors.push('The passphrase cannot exceed 128 characters')
     }
 
-    // Check for obvious weak passwords
     const weakPasswords = [
       '1234', '12345', '123456', 'password', 'senha', 'admin', 
       'teste', 'test', 'qwerty', 'abc123'
     ]
     
     if (weakPasswords.includes(passphrase.toLowerCase())) {
-      errors.push('Use uma senha mais segura')
+      errors.push('Use a passphrase more secure')
     }
 
     return {
@@ -76,23 +87,27 @@ export class ValidationUtils {
   }
 
   /**
-   * Validate TTL (Time To Live) value
+   * @description Validate TTL (Time To Live) value
+   * @param ttl - The TTL value to validate
+   * @returns An object with the validation result
+   * @throws An error if the TTL is not a number
+   * @throws An error if the TTL is not a positive number
+   * @throws An error if the TTL is not an integer
+   * @throws An error if the TTL is not a valid number
    */
   public static validateTTL(ttl: number): ValidationResult {
     const errors: string[] = []
 
     if (!Number.isInteger(ttl) || ttl <= 0) {
-      errors.push('Tempo de expiração deve ser um número positivo')
+      errors.push('The expiration time must be a positive number')
     }
 
-    // Minimum 5 minutes (300 seconds)
     if (ttl < 300) {
-      errors.push('Tempo mínimo de expiração é 5 minutos')
+      errors.push('The minimum expiration time is 5 minutes')
     }
 
-    // Maximum 30 days (2592000 seconds)
     if (ttl > 2592000) {
-      errors.push('Tempo máximo de expiração é 30 dias')
+      errors.push('The maximum expiration time is 30 days')
     }
 
     return {
@@ -102,18 +117,22 @@ export class ValidationUtils {
   }
 
   /**
-   * Validate secret content for security concerns
+   * @description Validate secret content for security concerns
+   * @param secret - The secret to validate
+   * @returns An object with the validation result
+   * @throws An error if the secret is empty
+   * @throws An error if the secret is too long
+   * @throws An error if the secret is too short
+   * @throws An error if the secret is not a string
    */
   private static validateSecretSecurity(secret: string): ValidationResult {
     const errors: string[] = []
 
-    // Check for potential script injection
     const scriptPattern = /<script[\s\S]*?>[\s\S]*?<\/script>/gi
     if (scriptPattern.test(secret)) {
-      errors.push('Conteúdo não pode conter scripts')
+      errors.push('The secret content cannot contain scripts')
     }
 
-    // Check for SQL injection patterns (basic)
     const sqlPatterns = [
       /drop\s+table/gi,
       /delete\s+from/gi,
@@ -124,7 +143,7 @@ export class ValidationUtils {
 
     for (const pattern of sqlPatterns) {
       if (pattern.test(secret)) {
-        errors.push('Conteúdo contém padrões não permitidos')
+        errors.push('The secret content contains forbidden patterns')
         break
       }
     }
@@ -136,7 +155,13 @@ export class ValidationUtils {
   }
 
   /**
-   * Validate email format
+   * @description Validate email format
+   * @param email - The email to validate
+   * @returns An object with the validation result
+   * @throws An error if the email is empty
+   * @throws An error if the email is not a string
+   * @throws An error if the email is not a valid email
+   * @throws An error if the email is not a valid email address
    */
   public static validateEmail(email: string): ValidationResult {
     const errors: string[] = []
@@ -144,7 +169,7 @@ export class ValidationUtils {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     
     if (!emailRegex.test(email)) {
-      errors.push('Formato de email inválido')
+      errors.push('Invalid email format')
     }
 
     return {
@@ -154,7 +179,12 @@ export class ValidationUtils {
   }
 
   /**
-   * Validate URL format
+   * @description Validate URL format
+   * @param url - The URL to validate
+   * @returns An object with the validation result
+   * @throws An error if the URL is empty
+   * @throws An error if the URL is not a string
+   * @throws An error if the URL is not a valid URL
    */
   public static validateURL(url: string): ValidationResult {
     const errors: string[] = []
@@ -162,7 +192,7 @@ export class ValidationUtils {
     try {
       new URL(url)
     } catch {
-      errors.push('URL inválida')
+      errors.push('Invalid URL')
     }
 
     return {
@@ -172,7 +202,12 @@ export class ValidationUtils {
   }
 
   /**
-   * Sanitize input to prevent XSS
+   * @description Sanitize input to prevent XSS
+   * @param input - The input to sanitize
+   * @returns The sanitized input
+   * @throws An error if the input is empty
+   * @throws An error if the input is not a string
+   * @throws An error if the input is not a valid string
    */
   public static sanitizeInput(input: string): string {
     return input
@@ -184,7 +219,12 @@ export class ValidationUtils {
   }
 
   /**
-   * Check password strength
+   * @description Check password strength
+   * @param password - The password to check
+   * @returns An object with the password strength result
+   * @throws An error if the password is empty
+   * @throws An error if the password is not a string
+   * @throws An error if the password is not a valid string
    */
   public static checkPasswordStrength(password: string): {
     score: number // 0-4
@@ -193,46 +233,47 @@ export class ValidationUtils {
     const feedback: string[] = []
     let score = 0
 
-    // Length check
     if (password.length >= 8) {
       score++
     } else {
-      feedback.push('Use pelo menos 8 caracteres')
+      feedback.push('You must use at least 8 characters')
     }
 
-    // Uppercase check
     if (/[A-Z]/.test(password)) {
       score++
     } else {
-      feedback.push('Inclua letras maiúsculas')
+      feedback.push('You must include uppercase letters')
     }
 
-    // Lowercase check
     if (/[a-z]/.test(password)) {
       score++
     } else {
-      feedback.push('Inclua letras minúsculas')
+      feedback.push('You must include lowercase letters')
     }
 
-    // Number check
     if (/\d/.test(password)) {
       score++
     } else {
-      feedback.push('Inclua números')
+      feedback.push('You must include numbers')
     }
 
-    // Special character check
     if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
       score++
     } else {
-      feedback.push('Inclua caracteres especiais')
+      feedback.push('You must include special characters')
     }
 
     return { score: Math.min(score, 4), feedback }
   }
 
   /**
-   * Format file size
+   * @description Format file size
+   * @param bytes - The file size in bytes
+   * @returns The formatted file size
+   * @throws An error if the file size is not a number
+   * @throws An error if the file size is not a positive number
+   * @throws An error if the file size is not an integer
+   * @throws An error if the file size is not a valid number
    */
   public static formatFileSize(bytes: number): string {
     if (bytes === 0) return '0 Bytes'
@@ -245,24 +286,30 @@ export class ValidationUtils {
   }
 
   /**
-   * Format duration from seconds
+   * @description Format duration from seconds
+   * @param seconds - The duration in seconds
+   * @returns The formatted duration
+   * @throws An error if the duration is not a number
+   * @throws An error if the duration is not a positive number
+   * @throws An error if the duration is not an integer
+   * @throws An error if the duration is not a valid number
    */
   public static formatDuration(seconds: number): string {
     if (seconds < 60) {
-      return `${seconds} segundo${seconds !== 1 ? 's' : ''}`
+      return `${seconds} second${seconds !== 1 ? 's' : ''}`
     }
     
     if (seconds < 3600) {
       const minutes = Math.floor(seconds / 60)
-      return `${minutes} minuto${minutes !== 1 ? 's' : ''}`
+      return `${minutes} minute${minutes !== 1 ? 's' : ''}`
     }
     
     if (seconds < 86400) {
       const hours = Math.floor(seconds / 3600)
-      return `${hours} hora${hours !== 1 ? 's' : ''}`
+      return `${hours} hour${hours !== 1 ? 's' : ''}`
     }
     
     const days = Math.floor(seconds / 86400)
-    return `${days} dia${days !== 1 ? 's' : ''}`
+    return `${days} day${days !== 1 ? 's' : ''}`
   }
 } 

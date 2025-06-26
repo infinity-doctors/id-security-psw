@@ -1,37 +1,46 @@
 export class ClipboardUtils {
   /**
-   * Copy text to clipboard using modern Clipboard API or fallback
+   * @description Copy text to clipboard using modern Clipboard API or fallback
+   * @param text - The text to copy to clipboard
+   * @returns A promise that resolves when the text is copied to clipboard
+   * @throws An error if the text is empty
+   * @throws An error if the Clipboard API is not available
+   * @throws An error if the Clipboard API is not available in a secure context
+   * @throws An error if the Clipboard API is not available in an older browser
+   * @throws An error if the Clipboard API is not available in a non-secure context
    */
   public static async copyToClipboard(text: string): Promise<void> {
     if (!text) {
-      throw new Error('Texto não pode ser vazio')
+      throw new Error('The text cannot be empty')
     }
 
-    // Try modern Clipboard API first
     if (navigator.clipboard && window.isSecureContext) {
       try {
         await navigator.clipboard.writeText(text)
         return
       } catch (error) {
         console.warn('Clipboard API failed, falling back to legacy method:', error)
-        // Fall through to legacy method
       }
     }
 
-    // Fallback for older browsers or non-secure contexts
     await this.fallbackCopyToClipboard(text)
   }
 
   /**
-   * Legacy clipboard copy method
+   * @description Copy text to clipboard using legacy method
+   * @param text - The text to copy to clipboard
+   * @returns A promise that resolves when the text is copied to clipboard
+   * @throws An error if the text is empty
+   * @throws An error if the Clipboard API is not available
+   * @throws An error if the Clipboard API is not available in a secure context
+   * @throws An error if the Clipboard API is not available in an older browser
+   * @throws An error if the Clipboard API is not available in a non-secure context
    */
   private static async fallbackCopyToClipboard(text: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      // Create temporary textarea
       const textArea = document.createElement('textarea')
       textArea.value = text
 
-      // Make it invisible but not display: none (which would make it unselectable)
       textArea.style.position = 'fixed'
       textArea.style.left = '-999999px'
       textArea.style.top = '-999999px'
@@ -42,12 +51,10 @@ export class ClipboardUtils {
       document.body.appendChild(textArea)
 
       try {
-        // Select the text
         textArea.focus()
         textArea.select()
         textArea.setSelectionRange(0, text.length)
 
-        // Execute copy command
         const successful = document.execCommand('copy')
         
         if (!successful) {
@@ -56,49 +63,64 @@ export class ClipboardUtils {
 
         resolve()
       } catch (error) {
-        reject(new Error('Falha ao copiar para área de transferência'))
+        reject(new Error('Failed to copy to clipboard'))
       } finally {
-        // Clean up
         document.body.removeChild(textArea)
       }
     })
   }
 
   /**
-   * Read text from clipboard
+   * @description Read text from clipboard
+   * @returns The text from clipboard
+   * @throws An error if the Clipboard API is not available
+   * @throws An error if the Clipboard API is not available in a secure context
+   * @throws An error if the Clipboard API is not available in an older browser
+   * @throws An error if the Clipboard API is not available in a non-secure context
    */
   public static async readFromClipboard(): Promise<string> {
     if (!navigator.clipboard) {
-      throw new Error('Clipboard API não está disponível')
+      throw new Error('Clipboard API is not available')
     }
 
     if (!window.isSecureContext) {
-      throw new Error('Clipboard só funciona em contexto seguro (HTTPS)')
+      throw new Error('Clipboard only works in secure context (HTTPS)')
     }
 
     try {
       return await navigator.clipboard.readText()
     } catch (error) {
-      throw new Error('Falha ao ler da área de transferência')
+      throw new Error('Failed to read from clipboard')
     }
   }
 
   /**
-   * Check if clipboard API is available
+   * @description Check if clipboard API is available
+   * @returns True if the Clipboard API is available, false otherwise
    */
   public static isClipboardSupported(): boolean {
     return !!(navigator.clipboard || document.execCommand)
   }
 
   /**
-   * Check if clipboard read is available
+   * @description Check if clipboard read is available
+   * @returns True if the Clipboard read is available, false otherwise
    */
   public static isClipboardReadSupported(): boolean {
     return !!(navigator.clipboard && navigator.clipboard.readText)
   }
 
   /**
-   * Copy with user feedback
+   * @description Copy with user feedback
+   * @param text - The text to copy to clipboard
+   * @param successCallback - The callback to call when the text is copied to clipboard
+   * @param errorCallback - The callback to call when the text is copied to clipboard
+   * @returns A promise that resolves when the text is copied to clipboard
+   * @throws An error if the text is empty
+   * @throws An error if the Clipboard API is not available
+   * @throws An error if the Clipboard API is not available in a secure context
+   * @throws An error if the Clipboard API is not available in an older browser
+   * @throws An error if the Clipboard API is not available in a non-secure context
    */
   public static async copyWithFeedback(
     text: string,
@@ -109,14 +131,21 @@ export class ClipboardUtils {
       await this.copyToClipboard(text)
       successCallback?.()
     } catch (error) {
-      const err = error instanceof Error ? error : new Error('Erro desconhecido')
+      const err = error instanceof Error ? error : new Error('Unknown error')
       errorCallback?.(err)
       throw err
     }
   }
 
   /**
-   * Copy formatted content (useful for sharing)
+   * @description Copy formatted content (useful for sharing)
+   * @param data - The data to copy to clipboard
+   * @returns A promise that resolves when the data is copied to clipboard
+   * @throws An error if the data is empty
+   * @throws An error if the Clipboard API is not available
+   * @throws An error if the Clipboard API is not available in a secure context
+   * @throws An error if the Clipboard API is not available in an older browser
+   * @throws An error if the Clipboard API is not available in a non-secure context
    */
   public static async copyFormattedContent(data: {
     title?: string
@@ -150,7 +179,15 @@ export class ClipboardUtils {
   }
 
   /**
-   * Copy secret link with security warning
+   * @description Copy secret link with security warning
+   * @param url - The URL to copy to clipboard
+   * @param expirationTime - The expiration time of the link
+   * @returns A promise that resolves when the link is copied to clipboard
+   * @throws An error if the URL is empty
+   * @throws An error if the Clipboard API is not available
+   * @throws An error if the Clipboard API is not available in a secure context
+   * @throws An error if the Clipboard API is not available in an older browser
+   * @throws An error if the Clipboard API is not available in a non-secure context
    */
   public static async copySecretLink(url: string, expirationTime?: string): Promise<void> {
     const warning = '⚠️ IMPORTANTE: Este link só pode ser acessado uma única vez'
@@ -171,7 +208,11 @@ export class ClipboardUtils {
   }
 
   /**
-   * Validate clipboard content before copying
+   * @description Validate clipboard content before copying
+   * @param content - The content to validate
+   * @returns An object with the validation result
+   * @throws An error if the content is empty
+   * @throws An error if the Clipboard API
    */
   public static validateContentBeforeCopy(content: string): {
     isValid: boolean
@@ -179,12 +220,11 @@ export class ClipboardUtils {
   } {
     const warnings: string[] = []
 
-    // Check for sensitive patterns
     const sensitivePatterns = [
-      { pattern: /password/gi, message: 'Contém a palavra "password"' },
-      { pattern: /secret/gi, message: 'Contém a palavra "secret"' },
-      { pattern: /\b\d{4}\s?\d{4}\s?\d{4}\s?\d{4}\b/g, message: 'Possível número de cartão de crédito' },
-      { pattern: /\b\d{3}-\d{2}-\d{4}\b/g, message: 'Possível SSN/CPF' }
+      { pattern: /password/gi, message: 'Contains the word "password"' },
+      { pattern: /secret/gi, message: 'Contains the word "secret"' },
+      { pattern: /\b\d{4}\s?\d{4}\s?\d{4}\s?\d{4}\b/g, message: 'Possible credit card number' },
+      { pattern: /\b\d{3}-\d{2}-\d{4}\b/g, message: 'Possible SSN/CPF' }
     ]
 
     for (const { pattern, message } of sensitivePatterns) {
@@ -193,9 +233,8 @@ export class ClipboardUtils {
       }
     }
 
-    // Check content length
     if (content.length > 10000) {
-      warnings.push('Conteúdo muito longo (>10KB)')
+      warnings.push('The content is too long (>10KB)')
     }
 
     return {
@@ -205,7 +244,12 @@ export class ClipboardUtils {
   }
 
   /**
-   * Get clipboard permissions status
+   * @description Get clipboard permissions status
+   * @returns The clipboard permissions status
+   * @throws An error if the Clipboard API is not available
+   * @throws An error if the Clipboard API is not available in a secure context
+   * @throws An error if the Clipboard API is not available in an older browser
+   * @throws An error if the Clipboard API is not available in a non-secure context
    */
   public static async getClipboardPermission(): Promise<PermissionState | 'unsupported'> {
     if (!navigator.permissions || !navigator.clipboard) {

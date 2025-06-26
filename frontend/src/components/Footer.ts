@@ -8,9 +8,9 @@ export class Footer {
           <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <!-- Company Info -->
             <div class="flex items-center space-x-4 text-sm text-gray-600">
-              <span>© ${currentYear} ID Security PSW</span>
+              <span>© ${currentYear} ID Security Password</span>
               <span class="hidden md:inline">•</span>
-              <span class="hidden md:inline">Tecnologia segura para sua empresa</span>
+              <span class="hidden md:inline">Infinity Doctors, Inc.</span>
             </div>
 
             <!-- Links and Info -->

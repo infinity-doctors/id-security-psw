@@ -13,13 +13,13 @@ services:
 
   # Backend One-Time Secret oficial
   ots-backend:
-    image: pglombardo/one-time-secret:latest
+    image: onetimesecret/onetimesecret:latest
     environment:
-      - OTS_SECRET=${OTS_SECRET:-your-secret-key-change-this}
-      - OTS_HOST=0.0.0.0
-      - OTS_PORT=7143
+      - SECRET=${OTS_SECRET:-your-secret-key-change-this-in-production}
+      - HOST=0.0.0.0:7143
+      - PORT=7143
       - REDIS_URL=redis://redis:6379
-      - OTS_DOMAIN=localhost:3000
+      - DOMAIN=localhost:3000
     ports:
       - "${OTS_BACKEND_PORT:-7143}:7143"
     depends_on:

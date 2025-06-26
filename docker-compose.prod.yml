@@ -24,7 +24,7 @@ services:
 
   # Backend One-Time Secret oficial
   ots-backend:
-    image: pglombardo/one-time-secret:latest
+    image: onetimesecret/onetimesecret:latest
     environment:
       - OTS_SECRET=${OTS_SECRET:-your-secret-key-change-this-in-production}
       - OTS_HOST=0.0.0.0

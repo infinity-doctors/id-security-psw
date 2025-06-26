@@ -1,11 +1,11 @@
-# Build stage
-FROM node:18-alpine AS builder
+# Build stage - força arquitetura x86_64 para resolver problemas de dependências
+FROM --platform=linux/amd64 node:18-alpine AS builder
 
 WORKDIR /app
 
 # Copy package files
 COPY frontend/package*.json ./
-RUN npm ci --only=production
+RUN npm install && npm install vite-plugin-windicss windicss --save-dev
 
 # Copy source code
 COPY frontend/ .
@@ -14,7 +14,7 @@ COPY frontend/ .
 RUN npm run build
 
 # Production stage
-FROM nginx:alpine
+FROM --platform=linux/amd64 nginx:alpine
 
 # Install Node.js for API proxy
 RUN apk add --no-cache nodejs npm

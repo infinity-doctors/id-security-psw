@@ -23,6 +23,14 @@ dev-logs: ## Mostra logs do ambiente de desenvolvimento
 dev-stop: ## Para ambiente de desenvolvimento
 	docker-compose down
 
+dev-local: ## Desenvolvimento local (apenas backend no Docker)
+	@echo "🚀 Iniciando backend em Docker..."
+	docker-compose up redis ots-backend -d
+	@echo "🔧 Iniciando frontend localmente..."
+	@echo "📌 Backend OTS: http://localhost:7143"
+	@echo "📌 Execute 'cd frontend && npm run dev' para o frontend"
+	@echo "✅ Backend rodando, inicie o frontend separadamente"
+
 # Production
 prod: ## Inicia ambiente de produção
 	@echo "🚀 Iniciando ambiente de produção..."

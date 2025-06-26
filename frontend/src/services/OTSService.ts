@@ -50,8 +50,7 @@ export class OTSService {
     // Request interceptor
     this.api.interceptors.request.use(
       (config) => {
-        // Add request timestamp for tracking
-        config.metadata = { startTime: new Date() }
+        // Request interceptor for monitoring
         return config
       },
       (error) => {
