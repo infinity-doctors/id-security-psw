@@ -1,0 +1,40 @@
+# Branch Protection Configuration
+# This file defines the branch protection rules for the repository
+
+protection_rules:
+  # Main branch protection
+  main:
+    required_status_checks:
+      strict: true
+      contexts: []
+    enforce_admins: false
+    required_pull_request_reviews:
+      required_approving_review_count: 1
+      dismiss_stale_reviews: true
+      require_code_owner_reviews: true
+      restrict_dismissals: false
+    restrictions: null
+    allow_force_pushes: false
+    allow_deletions: false
+
+  # Development branch protection  
+  develop:
+    required_status_checks:
+      strict: true
+      contexts: []
+    enforce_admins: false
+    required_pull_request_reviews:
+      required_approving_review_count: 1
+      dismiss_stale_reviews: true
+      require_code_owner_reviews: true
+      restrict_dismissals: false
+    restrictions: null
+    allow_force_pushes: false
+    allow_deletions: false
+
+  # Feature branch pattern protection
+  "feat/*":
+    required_pull_request_reviews:
+      required_approving_review_count: 1
+      require_code_owner_reviews: true
+    allow_force_pushes: false 

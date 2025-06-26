@@ -1,0 +1,139 @@
+name: Pull Request Validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main, develop]
+
+jobs:
+  validate-pr:
+    name: Validate Pull Request
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if PR requires code owner review
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const prNumber = context.payload.pull_request.number;
+            
+            // Get PR details
+            const pr = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: prNumber
+            });
+            
+            // Check if required reviewers are assigned
+            const requiredReviewers = ['LeuAlmeida', 'kaliSaada'];
+            const requestedReviewers = pr.data.requested_reviewers.map(r => r.login);
+            const hasRequiredReviewer = requiredReviewers.some(reviewer => 
+              requestedReviewers.includes(reviewer)
+            );
+            
+            if (!hasRequiredReviewer) {
+              // Add required reviewers
+              await github.rest.pulls.requestReviewers({
+                owner,
+                repo,
+                pull_number: prNumber,
+                reviewers: requiredReviewers
+              });
+              
+              console.log('Added required reviewers to PR');
+            }
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Run frontend linting
+        run: |
+          cd frontend
+          npm run lint || echo "Linting completed with warnings"
+
+      - name: Run frontend type checking
+        run: |
+          cd frontend
+          npx tsc --noEmit
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm run build
+
+      - name: Comment PR status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const prNumber = context.payload.pull_request.number;
+            
+            const comment = `
+            ## 🔍 Pull Request Validation
+            
+            ✅ **Automated checks completed successfully**
+            
+            ### Required Approvals
+            This PR requires approval from one of the following code owners:
+            - @LeuAlmeida 
+            - @kaliSaada
+            
+            ### Validation Results
+            - ✅ Frontend dependencies installed
+            - ✅ TypeScript compilation check passed
+            - ✅ Frontend build successful
+            
+            **Note**: This PR cannot be merged until it receives approval from a designated code owner.
+            `;
+            
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: prNumber,
+              body: comment
+            });
+
+  block-merge-without-approval:
+    name: Block merge without approval
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened' || github.event.action == 'synchronize'
+    
+    steps:
+      - name: Check for required approval
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const prNumber = context.payload.pull_request.number;
+            
+            // Get PR reviews
+            const reviews = await github.rest.pulls.listReviews({
+              owner,
+              repo,
+              pull_number: prNumber
+            });
+            
+            const requiredReviewers = ['LeuAlmeida', 'kaliSaada'];
+            const approvedByRequired = reviews.data.some(review => 
+              review.state === 'APPROVED' && 
+              requiredReviewers.includes(review.user.login)
+            );
+            
+            if (!approvedByRequired) {
+              core.setFailed('This PR requires approval from @LeuAlmeida or @kaliSaada before it can be merged.');
+            } 
