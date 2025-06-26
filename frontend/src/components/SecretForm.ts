@@ -15,7 +15,6 @@ export class SecretForm {
   public render(): string {
     return `
       <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 animate-slide-up">
-        <!-- Header -->
         <div class="text-center mb-8">
           <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Compartilhamento Seguro</h1>
           <p class="text-gray-600 dark:text-gray-300">
@@ -23,9 +22,7 @@ export class SecretForm {
           </p>
         </div>
 
-        <!-- Form -->
-        <form id="secret-form" class="space-y-6">
-          <!-- Secret Content -->
+        <form id="secret-form" class="space-y-6" autocomplete="off">
           <div>
             <label for="secret-content" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Conteúdo do Segredo *
@@ -43,7 +40,6 @@ export class SecretForm {
             </div>
           </div>
 
-          <!-- TTL Selection -->
           <div>
             <label for="ttl" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Tempo de Expiração
@@ -67,7 +63,6 @@ export class SecretForm {
             </div>
           </div>
 
-          <!-- Optional Passphrase -->
           <div>
             <label for="passphrase" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Senha Adicional (Opcional)
@@ -79,7 +74,9 @@ export class SecretForm {
                 name="passphrase"
                 class="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:focus:border-primary-400"
                 placeholder="Digite uma senha adicional..."
-                autocomplete="new-password"
+                autocomplete="off"
+                data-form="false"
+                data-lpignore="true"
               />
               <button
                 type="button"
@@ -98,7 +95,6 @@ export class SecretForm {
             </div>
           </div>
 
-          <!-- Security Notice -->
           <div class="bg-security-50 dark:bg-security-900/20 border border-security-200 dark:border-security-800/50 rounded-lg p-4">
             <div class="flex items-start">
               <svg class="w-5 h-5 text-security-600 dark:text-security-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -115,7 +111,6 @@ export class SecretForm {
             </div>
           </div>
 
-          <!-- Actions -->
           <div class="flex space-x-4 pt-4">
             <button
               type="submit"
@@ -146,39 +141,47 @@ export class SecretForm {
     const togglePasswordBtn = container.querySelector('[data-action="toggle-password"]') as HTMLButtonElement
     const clearBtn = container.querySelector('[data-action="clear-form"]') as HTMLButtonElement
 
-    // Form submission
-    form?.addEventListener('submit', this.handleSubmit.bind(this))
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault()
+      e.stopImmediatePropagation()
+      this.handleSubmit(e)
+    })
 
-    // Toggle password visibility
     togglePasswordBtn?.addEventListener('click', this.togglePasswordVisibility.bind(this))
 
-    // Clear form
-    clearBtn?.addEventListener('click', this.clearForm.bind(this))
+    clearBtn?.addEventListener('click', (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      this.clearForm()
+    })
 
-    // Character counter for textarea
     const textarea = container.querySelector('#secret-content') as HTMLTextAreaElement
     textarea?.addEventListener('input', this.updateCharacterCount.bind(this))
   }
 
   private async handleSubmit(e: Event): Promise<void> {
-    e.preventDefault()
+    const secretTextarea = document.getElementById('secret-content') as HTMLTextAreaElement
+    const ttlSelect = document.getElementById('ttl') as HTMLSelectElement
+    const passphraseInput = document.getElementById('passphrase') as HTMLInputElement
     
-    const form = e.target as HTMLFormElement
-    const formData = new FormData(form)
-    
-    const secret = formData.get('secret') as string
-    const ttl = parseInt(formData.get('ttl') as string)
-    const passphrase = formData.get('passphrase') as string
+    const secret = secretTextarea?.value || ''
+    const ttl = parseInt(ttlSelect?.value || '3600')
+    const passphrase = passphraseInput?.value || ''
 
-    // Validation
     const validationResult = ValidationUtils.validateSecret(secret, passphrase)
     if (!validationResult.isValid) {
       this.showError(validationResult.errors.join(', '))
       return
     }
 
+    const originalPassphrase = passphraseInput?.value || ''
+    
     try {
       this.setLoading(true)
+      
+      if (passphraseInput) {
+        passphraseInput.value = ''
+      }
       
       const result = await this.otsService.createSecret({
         secret,
@@ -187,7 +190,12 @@ export class SecretForm {
       })
 
       this.onSecretCreated(result.secret_key)
+      
+      this.clearForm()
     } catch (error) {
+      if (passphraseInput && originalPassphrase) {
+        passphraseInput.value = originalPassphrase
+      }
       this.showError(error instanceof Error ? error.message : 'Erro ao criar segredo')
     } finally {
       this.setLoading(false)
@@ -204,8 +212,24 @@ export class SecretForm {
   private clearForm(): void {
     const form = document.getElementById('secret-form') as HTMLFormElement
     if (form) {
-      form.reset()
+      const textarea = form.querySelector('#secret-content') as HTMLTextAreaElement
+      const select = form.querySelector('#ttl') as HTMLSelectElement
+      const passphrase = form.querySelector('#passphrase') as HTMLInputElement
+      
+      if (textarea) textarea.value = ''
+      if (select) select.selectedIndex = 3
+      if (passphrase) {
+        passphrase.value = ''
+        passphrase.type = 'password'
+      }
+      
       this.updateCharacterCount()
+      
+      const elements = form.querySelectorAll('.border-error-500')
+      elements.forEach(el => el.classList.remove('border-error-500'))
+      
+      const errorTexts = form.querySelectorAll('.text-error-500')
+      errorTexts.forEach(el => el.classList.remove('text-error-500'))
     }
   }
 
@@ -215,7 +239,6 @@ export class SecretForm {
       const count = textarea.value.length
       const maxLength = 5000
       
-      // Update counter display if exists
       let counter = document.querySelector('.character-counter')
       if (!counter) {
         counter = document.createElement('div')

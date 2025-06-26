@@ -4,9 +4,9 @@ Solução corporativa baseada no One-Time Secret com interface personalizada par
 
 ## 🏗️ Arquitetura
 
-- **Backend**: One-Time Secret oficial (pglombardo/one-time-secret)
+- **Backend**: One-Time Secret oficial (pglombardo/one-time-secret) + AWS ElastiCache Redis
 - **Frontend**: Interface customizada com HTML + TypeScript + WindiCSS
-- **Containerização**: Docker + Docker Compose
+- **Deploy**: Automático via merge na branch main
 
 ## 📁 Estrutura do Projeto
 
@@ -32,58 +32,36 @@ id-security-psw/
 - Docker
 - Docker Compose
 
-### Executar o ambiente completo
+### Desenvolvimento Local
 
 ```bash
 # Clone o repositório
 git clone <repository-url>
 cd id-security-psw
 
-# Iniciar todos os serviços
+# Iniciar backend (OTS + Redis local)
 docker-compose up -d
 
-# Aguardar inicialização (primeiro build pode demorar)
-docker-compose logs -f
-
-# Acessar a aplicação
-open http://localhost:3000
-```
-
-### URLs dos Serviços
-
-- **Frontend**: http://localhost:3000
-- **Backend OTS**: http://localhost:7143
-- **API OTS**: http://localhost:7143/api
-
-## 🛠️ Desenvolvimento
-
-### Build do Frontend
-
-```bash
-# Desenvolvimento
+# Em outro terminal, iniciar frontend
 cd frontend
 npm install
 npm run dev
-
-# Build de produção
-npm run build
-
-# Preview do build
-npm run preview
 ```
 
-### Logs e Debug
+### URLs Locais
+
+- **Frontend**: http://localhost:5173 (Vite dev server)
+- **Backend OTS**: http://localhost:7143
+
+## 🛠️ Desenvolvimento
+
+### Frontend
 
 ```bash
-# Logs de todos os serviços
-docker-compose logs -f
-
-# Logs específicos
-docker-compose logs -f frontend
-docker-compose logs -f ots-backend
-
-# Restart de serviços
-docker-compose restart frontend
+# Desenvolvimento local
+cd frontend
+npm install
+npm run dev
 ```
 
 ## ⚙️ Configuração
@@ -120,72 +98,25 @@ A interface pode ser customizada editando:
 - Validação de entrada em TypeScript
 - Sanitização de dados sensíveis
 
-## 📦 Deploy em Produção
+## 🚀 Deploy
 
-### Usando Docker Compose
+### Deploy Automático
+- **Frontend**: Deploy automático via pipeline CI/CD ao fazer merge na branch `main`
+- **Backend**: Container Docker com One-Time Secret + AWS ElastiCache Redis
+
+### Configuração Backend
 
 ```bash
-# Build e deploy
+# Deploy do backend OTS
 docker-compose -f docker-compose.prod.yml up -d
-
-# Atualização
-docker-compose pull
-docker-compose up -d --force-recreate
 ```
 
-### Usando Kubernetes (Helm)
+### Variáveis de Ambiente
 
-```bash
-# Deploy com Helm
-helm install id-security-psw ./helm/
-
-# Upgrade
-helm upgrade id-security-psw ./helm/
+```env
+# .env.prod
+OTS_SECRET=your-strong-secret-key-min-32-chars
+REDIS_URL=rediss://your-elasticache.amazonaws.com:6379
+OTS_DOMAIN=your-domain.com
+OTS_SSL=true
 ```
-
-## 🧪 Testes
-
-```bash
-# Testes unitários
-cd frontend
-npm test
-
-# Testes e2e
-npm run test:e2e
-
-# Linting e formatação
-npm run lint
-npm run format
-```
-
-## 📝 API Reference
-
-### Endpoints Principais
-
-```typescript
-// Criar segredo
-POST /api/secret
-{
-  "secret": "string",
-  "ttl": number,
-  "passphrase": "string?" // opcional
-}
-
-// Recuperar segredo
-GET /api/secret/:key/:passphrase?
-
-// Status do serviço
-GET /api/status
-```
-
-## 🤝 Contribuição
-
-1. Fork o projeto
-2. Crie sua feature branch (`git checkout -b feature/nova-funcionalidade`)
-3. Commit suas mudanças (`git commit -m 'Adiciona nova funcionalidade'`)
-4. Push para a branch (`git push origin feature/nova-funcionalidade`)
-5. Abra um Pull Request
-
-## 📄 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para detalhes.
