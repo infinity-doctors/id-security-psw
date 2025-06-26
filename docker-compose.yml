@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # Redis para OTS
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - ots-network
+    restart: unless-stopped
+
+  # Backend One-Time Secret oficial
+  ots-backend:
+    image: onetimesecret/onetimesecret:latest
+    environment:
+      - SECRET=${OTS_SECRET:-your-secret-key-change-this-in-production}
+      - HOST=0.0.0.0:7143
+      - PORT=7143
+      - REDIS_URL=redis://redis:6379
+      - DOMAIN=localhost:3000
+    ports:
+      - "${OTS_BACKEND_PORT:-7143}:7143"
+    depends_on:
+      - redis
+    networks:
+      - ots-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:7143/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nota: Frontend executado separadamente via 'npm run dev'
+  # Isso permite hot-reload durante desenvolvimento
+
+volumes:
+  redis_data:
+    driver: local
+
+networks:
+  ots-network:
+    driver: bridge 

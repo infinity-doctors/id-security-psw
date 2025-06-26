@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  # Backend One-Time Secret oficial
+  ots-backend:
+    image: onetimesecret/onetimesecret:latest
+    environment:
+      - OTS_SECRET=${OTS_SECRET}
+      - OTS_HOST=0.0.0.0
+      - OTS_PORT=7143
+      - REDIS_URL=${REDIS_URL}  # AWS ElastiCache Redis endpoint
+      - OTS_DOMAIN=${OTS_DOMAIN}
+      - OTS_SSL=${OTS_SSL:-true}
+    ports:
+      - "${OTS_BACKEND_PORT:-7143}:7143"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:7143/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  default:
+    driver: bridge 
