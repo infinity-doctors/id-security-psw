@@ -104,7 +104,7 @@ A interface pode ser customizada editando:
 
 ### Deploy Automático
 - **Frontend**: Deploy automático via pipeline CI/CD ao fazer merge na branch `main`
-- **Backend**: Container Docker com One-Time Secret + AWS ElastiCache Redis [TODO]
+- [TODO] **Backend**: Container Docker com One-Time Secret + AWS ElastiCache Redis
 
 ### Configuração Backend
 
