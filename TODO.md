@@ -12,4 +12,4 @@
 [X] Revisar e corrigir Docker
 [X] Revisar e adicionar dependências no arquivo `README.md` a fim de documentar as necessidades do backend e do frontend
 [ ] Testar agressivos de segredo de 1h s/ senha: http://localhost:3000/secret/2zitzkmhlvsrgs14qb34fr2312s66mh
-[ ] Testes agressivos de segredos com senha
+[ ] Testes agressivos de segredos com senha: (http://localhost:3000/secret/1f2qrqq5o62rdabkvd5bp6uv2xoaywm / 123senha)
