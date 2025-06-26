@@ -45,20 +45,24 @@ export class App {
       </div>
     `
 
-    // Initialize notifications
     this.notificationManager.init(document.getElementById('notifications')!)
+    
+    const contentElement = document.getElementById('app-content')
+    if (contentElement) {
+      this.bindCurrentViewEvents(contentElement)
+    }
   }
 
   private renderCurrentView(): string {
     switch (this.state.currentView) {
       case 'form':
-        return new SecretForm(this.handleSecretCreated.bind(this)).render()
+        return new SecretForm(this.handleSecretCreated.bind(this), this.showError.bind(this)).render()
       case 'view':
         return new SecretView(this.state.secretKey!, this.handleBackToForm.bind(this)).render()
       case 'success':
         return this.renderSuccessView()
       default:
-        return new SecretForm(this.handleSecretCreated.bind(this)).render()
+        return new SecretForm(this.handleSecretCreated.bind(this), this.showError.bind(this)).render()
     }
   }
 
@@ -100,6 +104,19 @@ export class App {
     })
   }
 
+  private bindCurrentViewEvents(container: HTMLElement): void {
+    switch (this.state.currentView) {
+      case 'form':
+        const secretForm = new SecretForm(this.handleSecretCreated.bind(this), this.showError.bind(this))
+        secretForm.bindEvents(container)
+        break
+      case 'view':
+        const secretView = new SecretView(this.state.secretKey!, this.handleBackToForm.bind(this))
+        secretView.bindEvents(container)
+        break
+    }
+  }
+
   private handleSecretCreated(secretKey: string): void {
     this.setState({ 
       currentView: 'view', 
@@ -125,11 +142,12 @@ export class App {
   private setState(newState: Partial<AppState>): void {
     this.state = { ...this.state, ...newState }
     
-    // Re-render only the content area for better performance
     const contentElement = document.getElementById('app-content')
     if (contentElement) {
       contentElement.innerHTML = this.renderCurrentView()
       contentElement.className = 'animate-fade-in'
+      
+      this.bindCurrentViewEvents(contentElement)
     }
   }
 
@@ -148,4 +166,4 @@ export class App {
       duration: 3000
     })
   }
-} 
+}

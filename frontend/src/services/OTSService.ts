@@ -47,10 +47,8 @@ export class OTSService {
   }
 
   private setupInterceptors(): void {
-    // Request interceptor
     this.api.interceptors.request.use(
       (config) => {
-        // Request interceptor for monitoring
         return config
       },
       (error) => {
@@ -58,7 +56,6 @@ export class OTSService {
       }
     )
 
-    // Response interceptor
     this.api.interceptors.response.use(
       (response: AxiosResponse) => {
         return response
@@ -70,17 +67,28 @@ export class OTSService {
   }
 
   /**
-   * Create a new secret
+   * @description Create a new secret
+   * @param request - The request object containing the secret, TTL, and passphrase
+   * @returns The response object containing the secret key, metadata key, TTL, and passphrase required
+   * @throws An error if the response is invalid
+   * @throws An error if the secret key is not found
+   * @throws An error if the metadata key is not found
+   * @throws An error if the TTL is not found
    */
   public async createSecret(request: CreateSecretRequest): Promise<CreateSecretResponse> {
     try {
-      const payload = {
-        secret: request.secret,
-        ttl: request.ttl.toString(),
-        ...(request.passphrase && { passphrase: request.passphrase })
+      const formData = new URLSearchParams()
+      formData.append('secret', request.secret)
+      formData.append('ttl', request.ttl.toString())
+      if (request.passphrase) {
+        formData.append('passphrase', request.passphrase)
       }
 
-      const response = await this.api.post<CreateSecretResponse>('/secret', payload)
+      const response = await this.api.post<CreateSecretResponse>('/v1/share', formData, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      })
       
       if (!response.data || !response.data.secret_key) {
         throw new Error('Resposta inválida do servidor')
@@ -93,7 +101,13 @@ export class OTSService {
   }
 
   /**
-   * Retrieve a secret by key
+   * @description Retrieve a secret by key
+   * @param secretKey - The secret key to retrieve
+   * @param passphrase - The passphrase to retrieve the secret
+   * @returns The response object containing the secret and metadata key
+   * @throws An error if the response is invalid
+   * @throws An error if the secret is not found
+   * @throws An error if the metadata key is not found
    */
   public async retrieveSecret(
     secretKey: string, 
@@ -117,7 +131,13 @@ export class OTSService {
   }
 
   /**
-   * Get secret metadata without revealing the secret
+   * @description Get secret metadata without revealing the secret
+   * @param metadataKey - The metadata key to retrieve
+   * @returns The response object containing the secret key, metadata key, TTL, created, updated, passphrase required, and state
+   * @throws An error if the response is invalid
+   * @throws An error if the secret key is not found
+   * @throws An error if the metadata key is not found
+   * @throws An error if the TTL is not found
    */
   public async getSecretMetadata(metadataKey: string): Promise<SecretMetadata> {
     try {
@@ -134,7 +154,11 @@ export class OTSService {
   }
 
   /**
-   * Get service status
+   * @description Get service status
+   * @returns The response object containing the status and version
+   * @throws An error if the response is invalid
+   * @throws An error if the status is not found
+   * @throws An error if the version is not found
    */
   public async getStatus(): Promise<{ status: string; version?: string }> {
     try {
@@ -146,7 +170,12 @@ export class OTSService {
   }
 
   /**
-   * Check if a secret exists without revealing it
+   * @description Check if a secret exists without revealing it
+   * @param secretKey - The secret key to check
+   * @returns The response object containing the boolean value indicating if the secret exists
+   * @throws An error if the response is invalid
+   * @throws An error if the secret key is not found
+   * @throws An error if the secret key is not found
    */
   public async checkSecretExists(secretKey: string): Promise<boolean> {
     try {
@@ -161,7 +190,12 @@ export class OTSService {
   }
 
   /**
-   * Generate a shareable URL for a secret
+   * @description Generate a shareable URL for a secret
+   * @param secretKey - The secret key to generate the URL for
+   * @param passphrase - The passphrase to generate the URL for
+   * @returns The shareable URL for the secret
+   * @throws An error if the secret key is not found
+   * @throws An error if the passphrase is not found
    */
   public generateSecretUrl(secretKey: string, passphrase?: string): string {
     const baseUrl = window.location.origin
@@ -175,25 +209,30 @@ export class OTSService {
   }
 
   /**
-   * Validate secret key format
+   * @description Validate secret key format
+   * @param key - The secret key to validate
+   * @returns The boolean value indicating if the secret key is valid
+   * @throws An error if the secret key is not found
+   * @throws An error if the secret key is not found
    */
   public static isValidSecretKey(key: string): boolean {
-    // OTS secret keys are typically alphanumeric with specific length
     const secretKeyRegex = /^[a-zA-Z0-9]{20,32}$/
     return secretKeyRegex.test(key)
   }
 
   /**
-   * Error handler
+   * @description Error handler
+   * @param error - The error to handle
+   * @returns The error object
+   * @throws An error if the error is not found
+   * @throws An error if the error is not found
    */
   private handleError(error: any): Error {
     if (axios.isAxiosError(error)) {
-      // Network/timeout errors
       if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
         return new Error('Timeout: Verifique sua conexão com a internet')
       }
 
-      // HTTP errors
       if (error.response) {
         const status = error.response.status
         const data = error.response.data
@@ -218,13 +257,11 @@ export class OTSService {
         }
       }
 
-      // Request errors (no response received)
       if (error.request) {
         return new Error('Erro de conexão: Verifique sua internet e tente novamente')
       }
     }
 
-    // Unknown error
     return error instanceof Error 
       ? error 
       : new Error('Erro desconhecido ocorreu')

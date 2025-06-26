@@ -3,10 +3,12 @@ import { ValidationUtils } from '../utils/ValidationUtils'
 
 export class SecretForm {
   private onSecretCreated: (secretKey: string) => void
+  private onError: (message: string) => void
   private otsService: OTSService
 
-  constructor(onSecretCreated: (secretKey: string) => void) {
+  constructor(onSecretCreated: (secretKey: string) => void, onError?: (message: string) => void) {
     this.onSecretCreated = onSecretCreated
+    this.onError = onError || console.error
     this.otsService = new OTSService()
   }
 
@@ -246,7 +248,7 @@ export class SecretForm {
   }
 
   private showError(message: string): void {
-    // This would typically trigger a notification
+    this.onError(message)
     console.error('SecretForm Error:', message)
   }
 } 
