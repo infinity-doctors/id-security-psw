@@ -45,13 +45,13 @@ export class SecretForm {
 
           <!-- TTL Selection -->
           <div>
-            <label for="ttl" class="block text-sm font-medium text-gray-700 mb-2">
+            <label for="ttl" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Tempo de Expiração
             </label>
             <select
               id="ttl"
               name="ttl"
-              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:focus:border-primary-400"
             >
               <option value="300">5 minutos</option>
               <option value="900">15 minutos</option>
@@ -62,14 +62,14 @@ export class SecretForm {
               <option value="259200">3 dias</option>
               <option value="604800">7 dias</option>
             </select>
-            <div class="mt-1 text-xs text-gray-500">
+            <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
               O link expirará automaticamente após o tempo selecionado.
             </div>
           </div>
 
           <!-- Optional Passphrase -->
           <div>
-            <label for="passphrase" class="block text-sm font-medium text-gray-700 mb-2">
+            <label for="passphrase" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Senha Adicional (Opcional)
             </label>
             <div class="relative">
@@ -77,34 +77,36 @@ export class SecretForm {
                 type="password"
                 id="passphrase"
                 name="passphrase"
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 pr-12"
+                class="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:focus:border-primary-400"
                 placeholder="Digite uma senha adicional..."
+                autocomplete="new-password"
               />
               <button
                 type="button"
-                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 z-10 focus:outline-none"
                 data-action="toggle-password"
+                tabindex="-1"
               >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                 </svg>
               </button>
             </div>
-            <div class="mt-1 text-xs text-gray-500">
+            <div class="mt-1 text-xs text-gray-500 dark:text-gray-400">
               Adicione uma camada extra de segurança com uma senha personalizada.
             </div>
           </div>
 
           <!-- Security Notice -->
-          <div class="bg-security-50 border border-security-200 rounded-lg p-4">
+          <div class="bg-security-50 dark:bg-security-900/20 border border-security-200 dark:border-security-800/50 rounded-lg p-4">
             <div class="flex items-start">
-              <svg class="w-5 h-5 text-security-600 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 text-security-600 dark:text-security-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
               </svg>
               <div class="text-sm">
-                <h4 class="font-medium text-security-800 mb-1">Aviso de Segurança</h4>
-                <ul class="text-security-700 space-y-1">
+                <h4 class="font-medium text-security-800 dark:text-security-200 mb-1">Aviso de Segurança</h4>
+                <ul class="text-security-700 dark:text-security-300 space-y-1">
                   <li>• O link gerado só pode ser acessado uma única vez</li>
                   <li>• Após o acesso, o conteúdo será permanentemente excluído</li>
                   <li>• Compartilhe apenas através de canais seguros</li>
@@ -217,7 +219,7 @@ export class SecretForm {
       let counter = document.querySelector('.character-counter')
       if (!counter) {
         counter = document.createElement('div')
-        counter.className = 'character-counter text-xs text-gray-500 mt-1'
+        counter.className = 'character-counter text-xs text-gray-500 dark:text-gray-400 mt-1'
         textarea.parentNode?.appendChild(counter)
       }
       
