@@ -14,7 +14,7 @@ export class Header {
               
               <div>
                 <h1 class="text-xl font-bold text-gray-900">ID Security PSW</h1>
-                <p class="text-xs text-gray-500 hidden sm:block">Compartilhamento Seguro Corporativo</p>
+                <p class="text-xs text-gray-500 hidden sm:block">Compartilhamento Seguro de Senhas</p>
               </div>
             </div>
 
